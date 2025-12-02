@@ -1,0 +1,7 @@
+Asset,Original_Features,Selected_Features,Dropped_LowVar,Dropped_HighCorr,Dropped_LowImp
+INTC,76,50,0,13,0
+AAPL,68,50,0,9,0
+NVDA,76,50,0,9,0
+IEF,76,50,0,15,0
+HYG,76,50,0,14,0
+BIL,76,50,0,18,0

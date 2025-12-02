@@ -333,9 +333,8 @@ def feature_engineering(
         
         ticker_features = []
         
-        # Basic return
-        df_basic = pd.DataFrame({f'{ticker}_ret_1d': r}, index=prices.index)
-        ticker_features.append(df_basic)
+        # NOTE: Removed ret_1d feature - it's the target variable!
+        # Including current day return causes perfect look-ahead bias
         
         # Technical indicators
         df_rsi = pd.DataFrame({f'{ticker}_rsi14': compute_rsi(p, 14)}, index=prices.index)
@@ -403,7 +402,7 @@ def feature_engineering(
     global_features = pd.DataFrame(index=returns_clipped.index)
     
     # Basic metrics
-    global_features['ew_ret_1d'] = ew_ret
+    # NOTE: Removed ew_ret_1d - it contains the target variable!
     global_features['ew_value'] = ew_value
     
     # Volatility

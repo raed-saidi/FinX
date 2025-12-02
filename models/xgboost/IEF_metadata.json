@@ -1,0 +1,16 @@
+{
+  "asset": "IEF",
+  "training_date": "2025-12-02T20:09:02.965141",
+  "model_type": "XGBoost",
+  "n_features": 76,
+  "best_iteration": 47,
+  "metrics": {
+    "train_rmse": 0.003754542208986758,
+    "val_rmse": 0.003559784053401717,
+    "test_rmse": 0.005139225096522047,
+    "test_mae": 0.00398897685644213,
+    "test_r2": -0.003742956779480222,
+    "test_directional_acc": 0.47808764940239046,
+    "test_sharpe": -0.5142481312351441
+  }
+}

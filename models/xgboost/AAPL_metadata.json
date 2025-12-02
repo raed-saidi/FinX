@@ -1,0 +1,16 @@
+{
+  "asset": "AAPL",
+  "training_date": "2025-12-02T20:08:43.658143",
+  "model_type": "XGBoost",
+  "n_features": 68,
+  "best_iteration": 84,
+  "metrics": {
+    "train_rmse": 0.01430781038954475,
+    "val_rmse": 0.017796982127891086,
+    "test_rmse": 0.015791448576270316,
+    "test_mae": 0.012118763028589838,
+    "test_r2": -0.0002393647639782337,
+    "test_directional_acc": 0.5318725099601593,
+    "test_sharpe": 0.604485165516928
+  }
+}

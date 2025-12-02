@@ -15,12 +15,12 @@ if __name__ == "__main__":
     
     # Asset universe (diversified across asset classes)
     tickers = [
-        "SPY",   # S&P 500 (US Large Cap)
-        "QQQ",   # Nasdaq 100 (US Tech)
-        "EFA",   # EAFE (International Developed)
-        "IEF",   # 7-10Y Treasury (Government Bonds)
-        "HYG",   # High Yield Corporate Bonds
-        "BIL",   # 1-3M Treasury Bills (Cash)
+        "INTC",   
+        "AAPL",   
+        "NVDA",   
+        "IEF",   
+        "HYG",   
+        "BIL",   
     ]
     
     # Date range

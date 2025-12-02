@@ -1,0 +1,16 @@
+{
+  "asset": "QQQ",
+  "training_date": "2025-12-02T17:38:44.923667",
+  "model_type": "XGBoost",
+  "n_features": 78,
+  "best_iteration": 24,
+  "metrics": {
+    "train_rmse": 0.009244460505101219,
+    "val_rmse": 0.012059576978505838,
+    "test_rmse": 0.012395802508698208,
+    "test_mae": 0.009826196747667175,
+    "test_r2": -5.977743517204814e-05,
+    "test_directional_acc": 0.5418326693227091,
+    "test_sharpe": 1013652.1275060336
+  }
+}

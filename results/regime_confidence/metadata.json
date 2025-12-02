@@ -1,0 +1,62 @@
+{
+  "creation_date": "2025-12-02T18:09:26.907746",
+  "num_assets": 6,
+  "assets": [
+    "BIL",
+    "EFA",
+    "HYG",
+    "IEF",
+    "QQQ",
+    "SPY"
+  ],
+  "regime_config": {
+    "regime_columns": [
+      "regime_0",
+      "regime_1",
+      "regime_2"
+    ],
+    "train_separate_models": true,
+    "min_samples_per_regime": 50
+  },
+  "quantile_config": {
+    "quantiles": [
+      0.1,
+      0.5,
+      0.9
+    ],
+    "alpha": 0.2
+  },
+  "confidence_config": {
+    "min_confidence_threshold": 0.5,
+    "confidence_metric": "width",
+    "position_scaling": true
+  },
+  "trading_config": {
+    "transaction_cost": 0.001,
+    "slippage": 0.0005,
+    "min_position_change": 0.1
+  },
+  "xgboost_params": {
+    "objective": "reg:quantileerror",
+    "learning_rate": 0.01,
+    "max_depth": 5,
+    "min_child_weight": 3,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "gamma": 0.1,
+    "reg_alpha": 0.1,
+    "reg_lambda": 1.0,
+    "n_estimators": 500,
+    "random_state": 42,
+    "n_jobs": -1,
+    "tree_method": "hist"
+  },
+  "summary_stats": {
+    "mean_sharpe": 7.634248289749391,
+    "mean_sortino": 17.87923708590246,
+    "mean_calmar": 32.07638374789883,
+    "mean_win_rate": 0.6862549800796813,
+    "mean_profit_factor": 6.7962203656581535,
+    "mean_confidence": 0.9894840717315674
+  }
+}

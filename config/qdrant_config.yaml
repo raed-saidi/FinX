@@ -4,7 +4,7 @@
 # Qdrant Connection
 qdrant:
   # Connection type: 'docker' (local), 'cloud' (Qdrant Cloud), or 'remote' (self-hosted)
-  deployment_type: "docker"
+  deployment_type: "cloud"
   
   # Docker deployment settings
   docker:
@@ -17,8 +17,8 @@ qdrant:
   
   # Cloud deployment settings (Qdrant Cloud)
   cloud:
-    url: "https://your-cluster.aws.cloud.qdrant.io"
-    api_key: "${QDRANT_API_KEY}"  # Set via environment variable
+    url: "https://994efbd8-6b4c-4e42-9ea9-3385f9169e64.eu-west-2-0.aws.cloud.qdrant.io:6333"
+    api_key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.dFUZ_OB_3rqo4874o3pSgdzuFZvwqh0-csOLyB_7Vbs"
     timeout: 30
   
   # Remote deployment settings (self-hosted)

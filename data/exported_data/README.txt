@@ -1,12 +1,12 @@
 # Exported ML Data - Ready for Training
 
 ## Pipeline Run Summary
-- **Created**: 2025-12-02 15:01:22.267707
+- **Created**: 2025-12-02 19:50:27.811427
 - **Train Period**: Up to 2017-12-29
 - **Validation Period**: 2017-12-29 to 2020-12-31 (for walk-forward hyperparameter tuning)
 - **Test Period**: After 2020-12-31
-- **Assets**: SPY, QQQ, EFA, IEF, HYG, BIL
-- **Total Features**: 375
+- **Assets**: INTC, AAPL, NVDA, IEF, HYG, BIL
+- **Total Features**: 368
 - **Train Samples**: 1706
 - **Validation Samples**: 756
 - **Test Samples**: 1004
@@ -27,7 +27,7 @@ This dataset implements a **walk-forward validation** approach:
 exported_data/
 ├── per_asset/           # Per-asset model training data
 │   ├── SPY/
-│   │   ├── X_train.parquet  (70 features)
+│   │   ├── X_train.parquet  (N/A features)
 │   │   ├── X_val.parquet
 │   │   ├── X_test.parquet
 │   │   ├── y_train.parquet  (SPY returns)
@@ -37,7 +37,7 @@ exported_data/
 │   └── (... 5 more assets)
 │
 ├── global/              # RL ensemble training data
-│   ├── X_train.parquet  (375 features × 1706 samples)
+│   ├── X_train.parquet  (368 features × 1706 samples)
 │   ├── X_val.parquet
 │   ├── X_test.parquet
 │   ├── y_train.parquet  (6 targets)

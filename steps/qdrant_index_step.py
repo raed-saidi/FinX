@@ -21,14 +21,26 @@ try:
     QDRANT_AVAILABLE = True
 except ImportError:
     QDRANT_AVAILABLE = False
+    QdrantClient = None  # Placeholder to prevent NameError
+    Distance = VectorParams = PointStruct = None
+    Filter = FieldCondition = MatchValue = Range = None
     print("⚠️  Qdrant client not installed. Install: pip install qdrant-client")
 
 
 def load_config(config_path: str = "./config/qdrant_config.yaml") -> Dict:
     """Load Qdrant configuration from YAML file."""
     config_file = Path(config_path)
+    
+    # If relative path, resolve it relative to the smart_investment_ai directory
+    if not config_file.is_absolute():
+        # Get the directory containing this file (steps/)
+        current_file = Path(__file__).resolve()
+        # Go up to smart_investment_ai directory
+        project_root = current_file.parent.parent
+        config_file = project_root / config_path
+    
     if not config_file.exists():
-        raise FileNotFoundError(f"Config file not found: {config_path}")
+        raise FileNotFoundError(f"Config file not found: {config_file} (original path: {config_path})")
     
     with open(config_file, 'r') as f:
         config = yaml.safe_load(f)
@@ -117,18 +129,12 @@ def create_sliding_windows(
     if n_dates < window_size:
         raise ValueError(f"Not enough data points ({n_dates}) for window_size={window_size}")
     
+    # Use ALL features for each ticker window (includes cross-asset and global features)
+    all_features_data = features_scaled.values
+    n_features = all_features_data.shape[1]
+    
     for ticker in tickers:
         print(f"  Processing {ticker}...")
-        
-        # Find ticker-specific features
-        ticker_features = [col for col in features_scaled.columns if col.startswith(f"{ticker}_")]
-        
-        if not ticker_features:
-            print(f"    ⚠️  No features found for {ticker}, skipping...")
-            continue
-        
-        ticker_data = features_scaled[ticker_features].values
-        n_features = ticker_data.shape[1]
         
         # Create sliding windows
         window_idx = 0
@@ -136,7 +142,7 @@ def create_sliding_windows(
             window_start_idx = i
             window_end_idx = i + window_size
             
-            window = ticker_data[window_start_idx:window_end_idx, :]
+            window = all_features_data[window_start_idx:window_end_idx, :]
             
             # Check for sufficient non-NaN data
             non_nan_count = np.sum(~np.isnan(window))
@@ -242,6 +248,19 @@ def setup_qdrant_collection(
         client.delete_collection(collection_name)
         collection_exists = False
     
+    if collection_exists:
+        # Verify vector size matches
+        collection_info = client.get_collection(collection_name)
+        existing_size = collection_info.config.params.vectors.size
+        
+        if existing_size != vector_size:
+            print(f"  ⚠️  Vector size mismatch: existing={existing_size}, required={vector_size}")
+            print(f"  🗑️  Recreating collection with correct dimensions...")
+            client.delete_collection(collection_name)
+            collection_exists = False
+        else:
+            print(f"  ✅ Collection already exists")
+    
     if not collection_exists:
         # Map distance metric
         distance_map = {
@@ -264,17 +283,6 @@ def setup_qdrant_collection(
             ),
         )
         print(f"  ✅ Collection created successfully")
-    else:
-        print(f"  ✅ Collection already exists")
-        
-        # Verify vector size matches
-        collection_info = client.get_collection(collection_name)
-        existing_size = collection_info.config.params.vectors.size
-        
-        if existing_size != vector_size:
-            raise ValueError(
-                f"Collection vector size mismatch: existing={existing_size}, new={vector_size}"
-            )
 
 
 def load_indexing_state(state_file: Path) -> Dict:

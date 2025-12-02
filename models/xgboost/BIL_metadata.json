@@ -1,0 +1,16 @@
+{
+  "asset": "BIL",
+  "training_date": "2025-12-02T20:09:22.658444",
+  "model_type": "XGBoost",
+  "n_features": 76,
+  "best_iteration": 0,
+  "metrics": {
+    "train_rmse": 0.0001667919334107424,
+    "val_rmse": 0.00013089726253371145,
+    "test_rmse": 0.0002041782672348407,
+    "test_mae": 0.00014533964250531197,
+    "test_r2": -0.3927107988350027,
+    "test_directional_acc": 0.5946215139442231,
+    "test_sharpe": 10.196587348400847
+  }
+}

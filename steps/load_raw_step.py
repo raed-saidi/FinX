@@ -4,73 +4,111 @@
 from typing import List, Dict, Tuple, Optional
 import pandas as pd
 import yfinance as yf
+from fredapi import Fred
 from zenml import step
 import warnings
 warnings.filterwarnings('ignore')
 
+# FRED API Configuration
+FRED_API_KEY = "ebee0a31d662a31865e730fc4deb22c6"
+fred = Fred(api_key=FRED_API_KEY)
+
 
 def fetch_vix_data(start_date: str, end_date: str) -> pd.DataFrame:
-    """Fetch VIX (Volatility Index) data."""
+    """Fetch VIX (Volatility Index) data from FRED."""
     try:
-        print("  Fetching VIX (Volatility Index)...")
-        vix = yf.download("^VIX", start=start_date, end=end_date, progress=False)
-        if not vix.empty and 'Close' in vix.columns:
-            return vix[['Close']].rename(columns={'Close': 'VIX'})
+        print("  Fetching VIX (Volatility Index) from FRED...")
+        vix = fred.get_series("VIXCLS", observation_start=start_date, observation_end=end_date)
+        if not vix.empty:
+            return vix.to_frame(name='VIX')
     except Exception as e:
-        print(f"  ⚠️  Failed to fetch VIX: {e}")
+        print(f"  ⚠️  Failed to fetch VIX from FRED: {e}")
+        # Fallback to yfinance
+        try:
+            print("  Trying yfinance as fallback...")
+            vix = yf.download("^VIX", start=start_date, end=end_date, progress=False)
+            if not vix.empty and 'Close' in vix.columns:
+                return vix[['Close']].rename(columns={'Close': 'VIX'})
+        except Exception as e2:
+            print(f"  ⚠️  Fallback also failed: {e2}")
     return pd.DataFrame()
 
 
 def fetch_treasury_yields(start_date: str, end_date: str) -> pd.DataFrame:
-    """Fetch Treasury yield data (10Y, 2Y, yield curve)."""
+    """Fetch Treasury yield data from FRED (10Y, 2Y, yield curve)."""
     try:
-        print("  Fetching Treasury yields...")
+        print("  Fetching Treasury yields from FRED...")
         yields = pd.DataFrame()
-        tnx = yf.download("^TNX", start=start_date, end=end_date, progress=False)
-        if not tnx.empty and 'Close' in tnx.columns:
-            yields['YIELD_10Y'] = tnx['Close']
-        tuf = yf.download("^FVX", start=start_date, end=end_date, progress=False)
-        if not tuf.empty and 'Close' in tuf.columns:
-            yields['YIELD_2Y'] = tuf['Close']
+        
+        # 10-Year Treasury Constant Maturity Rate
+        try:
+            dgs10 = fred.get_series("DGS10", observation_start=start_date, observation_end=end_date)
+            if not dgs10.empty:
+                yields['YIELD_10Y'] = dgs10
+        except Exception as e:
+            print(f"    ⚠️  Failed to fetch 10Y yield: {e}")
+        
+        # 2-Year Treasury Constant Maturity Rate
+        try:
+            dgs2 = fred.get_series("DGS2", observation_start=start_date, observation_end=end_date)
+            if not dgs2.empty:
+                yields['YIELD_2Y'] = dgs2
+        except Exception as e:
+            print(f"    ⚠️  Failed to fetch 2Y yield: {e}")
+        
+        # Calculate yield curve spread
         if 'YIELD_10Y' in yields.columns and 'YIELD_2Y' in yields.columns:
             yields['YIELD_CURVE'] = yields['YIELD_10Y'] - yields['YIELD_2Y']
+        
         return yields
     except Exception as e:
-        print(f"  ⚠️  Failed to fetch Treasury yields: {e}")
+        print(f"  ⚠️  Failed to fetch Treasury yields from FRED: {e}")
     return pd.DataFrame()
 
 
 def fetch_dollar_index(start_date: str, end_date: str) -> pd.DataFrame:
-    """Fetch US Dollar Index (DXY)."""
+    """Fetch US Dollar Index from FRED."""
     try:
-        print("  Fetching Dollar Index...")
-        dxy = yf.download("DX-Y.NYB", start=start_date, end=end_date, progress=False)
-        if not dxy.empty and 'Close' in dxy.columns:
-            return dxy[['Close']].rename(columns={'Close': 'DXY'})
+        print("  Fetching Dollar Index from FRED...")
+        # Trade Weighted U.S. Dollar Index: Broad, Goods and Services
+        dxy = fred.get_series("DTWEXBGS", observation_start=start_date, observation_end=end_date)
+        if not dxy.empty:
+            return dxy.to_frame(name='DXY')
     except Exception as e:
-        print(f"  ⚠️  Failed to fetch Dollar Index: {e}")
+        print(f"  ⚠️  Failed to fetch Dollar Index from FRED: {e}")
     return pd.DataFrame()
 
 
 def fetch_commodities(start_date: str, end_date: str) -> pd.DataFrame:
-    """Fetch commodity prices (Gold, Oil)."""
+    """Fetch commodity prices from FRED (Gold, Oil)."""
     try:
-        print("  Fetching commodities...")
+        print("  Fetching commodities from FRED...")
         commodities = pd.DataFrame()
-        gold = yf.download("GLD", start=start_date, end=end_date, progress=False)
-        if not gold.empty and 'Close' in gold.columns:
-            commodities['GOLD'] = gold['Close']
-        oil = yf.download("USO", start=start_date, end=end_date, progress=False)
-        if not oil.empty and 'Close' in oil.columns:
-            commodities['OIL'] = oil['Close']
+        
+        # Gold Fixing Price (London PM, USD per Troy Ounce)
+        try:
+            gold = fred.get_series("GOLDPMGBD228NLBM", observation_start=start_date, observation_end=end_date)
+            if not gold.empty:
+                commodities['GOLD'] = gold
+        except Exception as e:
+            print(f"    ⚠️  Failed to fetch Gold: {e}")
+        
+        # Crude Oil Prices: West Texas Intermediate (WTI)
+        try:
+            oil = fred.get_series("DCOILWTICO", observation_start=start_date, observation_end=end_date)
+            if not oil.empty:
+                commodities['OIL'] = oil
+        except Exception as e:
+            print(f"    ⚠️  Failed to fetch Oil: {e}")
+        
         return commodities
     except Exception as e:
-        print(f"  ⚠️  Failed to fetch commodities: {e}")
+        print(f"  ⚠️  Failed to fetch commodities from FRED: {e}")
     return pd.DataFrame()
 
 
 def fetch_market_breadth(start_date: str, end_date: str) -> pd.DataFrame:
-    """Fetch market breadth indicators (e.g., small cap Russell 2000)."""
+    """Fetch market breadth indicators (small cap Russell 2000 from yfinance)."""
     try:
         print("  Fetching market breadth indicators...")
         breadth = pd.DataFrame()

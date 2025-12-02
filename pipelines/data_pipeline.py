@@ -23,6 +23,7 @@ def data_pipeline(
     start_date: str,
     end_date: str,
     train_end_date: str,
+    val_end_date: str,
     include_alternative_data: bool = True,
     scaling_method: str = "standard",
     save_raw_dir: str = "./data/raw",
@@ -52,6 +53,7 @@ def data_pipeline(
         start_date: Start date 'YYYY-MM-DD'
         end_date: End date 'YYYY-MM-DD'
         train_end_date: Last date of training period
+        val_end_date: Last date of validation period
         include_alternative_data: Fetch VIX, yields, commodities
         scaling_method: 'standard', 'robust', or 'minmax'
         save_raw_dir: Raw data directory
@@ -62,7 +64,7 @@ def data_pipeline(
         All artifacts saved to directories:
         - ./data/raw/ - Raw OHLCV + alternative data
         - ./data/processed/ - Processed data + scalers
-        - ./data/exported_data/ - ML-ready train/test splits
+        - ./data/exported_data/ - ML-ready train/val/test splits
           - per_asset/{ticker}/ - Per-asset data
           - global/ - Full dataset
           - manifest.json - Complete metadata
@@ -145,6 +147,7 @@ def data_pipeline(
         prices=prices,
         scaler_features=scaler_features,
         train_end_date=train_end_date,
+        val_end_date=val_end_date,
         tickers=tickers,
         output_dir=save_exported_dir,
     )

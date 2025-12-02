@@ -1,0 +1,28 @@
+{
+  "tickers": [
+    "SPY",
+    "QQQ",
+    "EFA",
+    "IEF",
+    "HYG",
+    "BIL"
+  ],
+  "price_types": [
+    "Adj Close",
+    "Close",
+    "High",
+    "Low",
+    "Open",
+    "Volume"
+  ],
+  "alternative_features": [
+    "VIX",
+    "YIELD_10Y",
+    "YIELD_2Y",
+    "YIELD_CURVE",
+    "DXY",
+    "GOLD",
+    "OIL",
+    "SMALL_CAP"
+  ]
+}

@@ -56,7 +56,8 @@ def create_per_asset_features(
             asset_features.append(col)
     
     X = features_scaled[asset_features].copy()
-    y = returns_clipped[[asset_ticker]].copy()
+    # Align returns to features index (features may have fewer rows due to warm-up period)
+    y = returns_clipped[[asset_ticker]].loc[features_scaled.index].copy()
     
     return X, y
 
@@ -68,6 +69,7 @@ def export_for_models(
     prices: pd.DataFrame,
     scaler_features: Any,
     train_end_date: str,
+    val_end_date: str,
     tickers: List[str],
     output_dir: str = "./data/exported_data",
 ) -> Dict[str, Any]:
@@ -76,6 +78,11 @@ def export_for_models(
     1. Per-asset exports for individual models (LightGBM, XGBoost, LSTM)
     2. Global exports for RL ensemble
     3. Comprehensive metadata manifests
+    
+    Data is split into train/validation/test:
+    - Train: 2010-2017 (for model training)
+    - Validation: 2018-2020 (for hyperparameter tuning with walk-forward)
+    - Test: 2021-2024 (for final evaluation)
     """
     
     print("\n" + "="*80)
@@ -85,9 +92,10 @@ def export_for_models(
     base_path = Path(output_dir)
     base_path.mkdir(parents=True, exist_ok=True)
     
-    # Create train/test masks
+    # Create train/validation/test masks
     train_mask = features_scaled.index <= train_end_date
-    test_mask = ~train_mask
+    val_mask = (features_scaled.index > train_end_date) & (features_scaled.index <= val_end_date)
+    test_mask = features_scaled.index > val_end_date
     
     # =============================================================================
     # 1. PER-ASSET EXPORTS (for per-asset models)
@@ -115,31 +123,40 @@ def export_for_models(
             asset_ticker=ticker,
         )
         
-        # Split train/test
+        # Split train/val/test
         X_train = X_asset.loc[train_mask]
+        X_val = X_asset.loc[val_mask]
         X_test = X_asset.loc[test_mask]
         y_train = y_asset.loc[train_mask]
+        y_val = y_asset.loc[val_mask]
         y_test = y_asset.loc[test_mask]
         
         # Validate
         assert len(X_train) == len(y_train), f"{ticker}: X_train and y_train length mismatch"
+        assert len(X_val) == len(y_val), f"{ticker}: X_val and y_val length mismatch"
         assert len(X_test) == len(y_test), f"{ticker}: X_test and y_test length mismatch"
         assert X_train.index.equals(y_train.index), f"{ticker}: X_train and y_train index mismatch"
+        assert X_val.index.equals(y_val.index), f"{ticker}: X_val and y_val index mismatch"
         
         print(f"  Features: {X_train.shape[1]}")
         print(f"  Train: {len(X_train)} samples ({X_train.index.min().date()} to {X_train.index.max().date()})")
+        print(f"  Val: {len(X_val)} samples ({X_val.index.min().date()} to {X_val.index.max().date()})")
         print(f"  Test: {len(X_test)} samples ({X_test.index.min().date()} to {X_test.index.max().date()})")
         
         # Save as Parquet (primary format)
         X_train.to_parquet(asset_dir / "X_train.parquet", compression="snappy")
+        X_val.to_parquet(asset_dir / "X_val.parquet", compression="snappy")
         X_test.to_parquet(asset_dir / "X_test.parquet", compression="snappy")
         y_train.to_parquet(asset_dir / "y_train.parquet", compression="snappy")
+        y_val.to_parquet(asset_dir / "y_val.parquet", compression="snappy")
         y_test.to_parquet(asset_dir / "y_test.parquet", compression="snappy")
         
         # Save as CSV (for portability/inspection)
         X_train.to_csv(asset_dir / "X_train.csv")
+        X_val.to_csv(asset_dir / "X_val.csv")
         X_test.to_csv(asset_dir / "X_test.csv")
         y_train.to_csv(asset_dir / "y_train.csv")
+        y_val.to_csv(asset_dir / "y_val.csv")
         y_test.to_csv(asset_dir / "y_test.csv")
         
         # Asset-specific metadata
@@ -148,10 +165,15 @@ def export_for_models(
             "n_features": X_train.shape[1],
             "feature_names": X_train.columns.tolist(),
             "train_samples": len(X_train),
+            "val_samples": len(X_val),
             "test_samples": len(X_test),
             "train_date_range": {
                 "start": str(X_train.index.min().date()),
                 "end": str(X_train.index.max().date()),
+            },
+            "val_date_range": {
+                "start": str(X_val.index.min().date()),
+                "end": str(X_val.index.max().date()),
             },
             "test_date_range": {
                 "start": str(X_test.index.min().date()),
@@ -163,6 +185,13 @@ def export_for_models(
                 "y_min": float(y_train[ticker].min()),
                 "y_max": float(y_train[ticker].max()),
                 "y_sharpe_ann": float(y_train[ticker].mean() / y_train[ticker].std() * np.sqrt(252)),
+            },
+            "val_stats": {
+                "y_mean": float(y_val[ticker].mean()),
+                "y_std": float(y_val[ticker].std()),
+                "y_min": float(y_val[ticker].min()),
+                "y_max": float(y_val[ticker].max()),
+                "y_sharpe_ann": float(y_val[ticker].mean() / y_val[ticker].std() * np.sqrt(252)),
             },
             "test_stats": {
                 "y_mean": float(y_test[ticker].mean()),
@@ -189,27 +218,37 @@ def export_for_models(
     global_dir = base_path / "global"
     global_dir.mkdir(exist_ok=True)
     
+    # Align returns to features index (features may have fewer rows due to warm-up period)
+    returns_aligned = returns_clipped.loc[features_scaled.index]
+    
     # Full feature matrix (all assets)
     X_train_global = features_scaled.loc[train_mask]
+    X_val_global = features_scaled.loc[val_mask]
     X_test_global = features_scaled.loc[test_mask]
-    y_train_global = returns_clipped.loc[train_mask]
-    y_test_global = returns_clipped.loc[test_mask]
+    y_train_global = returns_aligned.loc[train_mask]
+    y_val_global = returns_aligned.loc[val_mask]
+    y_test_global = returns_aligned.loc[test_mask]
     
     print(f"\nGlobal dataset:")
     print(f"  Features: {X_train_global.shape[1]}")
     print(f"  Targets: {y_train_global.shape[1]} assets")
     print(f"  Train: {len(X_train_global)} samples")
+    print(f"  Val: {len(X_val_global)} samples")
     print(f"  Test: {len(X_test_global)} samples")
     
     # Save global data
     X_train_global.to_parquet(global_dir / "X_train.parquet", compression="snappy")
+    X_val_global.to_parquet(global_dir / "X_val.parquet", compression="snappy")
     X_test_global.to_parquet(global_dir / "X_test.parquet", compression="snappy")
     y_train_global.to_parquet(global_dir / "y_train.parquet", compression="snappy")
+    y_val_global.to_parquet(global_dir / "y_val.parquet", compression="snappy")
     y_test_global.to_parquet(global_dir / "y_test.parquet", compression="snappy")
     
-    # Also save prices (useful for RL reward calculation)
-    prices.loc[train_mask].to_parquet(global_dir / "prices_train.parquet")
-    prices.loc[test_mask].to_parquet(global_dir / "prices_test.parquet")
+    # Also save prices (useful for RL reward calculation) - align to features index
+    prices_aligned = prices.loc[features_scaled.index]
+    prices_aligned.loc[train_mask].to_parquet(global_dir / "prices_train.parquet")
+    prices_aligned.loc[val_mask].to_parquet(global_dir / "prices_val.parquet")
+    prices_aligned.loc[test_mask].to_parquet(global_dir / "prices_test.parquet")
     
     print(f"  ✅ Saved to {global_dir}")
     
@@ -242,11 +281,13 @@ def export_for_models(
         "pipeline_version": "1.0",
         "created_at": pd.Timestamp.now().isoformat(),
         "train_end_date": train_end_date,
+        "val_end_date": val_end_date,
         "tickers": tickers,
         "data_summary": {
             "total_features": features_scaled.shape[1],
             "total_samples": len(features_scaled),
             "train_samples": int(train_mask.sum()),
+            "val_samples": int(val_mask.sum()),
             "test_samples": int(test_mask.sum()),
             "date_range": {
                 "start": str(features_scaled.index.min().date()),
@@ -261,12 +302,12 @@ def export_for_models(
             "target_names": y_train_global.columns.tolist(),
         },
         "file_structure": {
-            "per_asset": f"{len(tickers)} ticker directories with X/y train/test splits",
+            "per_asset": f"{len(tickers)} ticker directories with X/y train/val/test splits",
             "global": "Full dataset for RL ensemble training",
             "scalers": "Fitted scaler objects for inverse transforms",
         },
         "usage": {
-            "per_asset_models": "Load data/exported_data/per_asset/{ticker}/X_train.parquet",
+            "per_asset_models": "Load data/exported_data/per_asset/{ticker}/X_train.parquet and X_val.parquet for tuning",
             "rl_model": "Load data/exported_data/global/X_train.parquet",
             "quick_start": "See scripts/train_per_asset_models.py",
         },
@@ -286,11 +327,24 @@ def export_for_models(
 
 ## Pipeline Run Summary
 - **Created**: {pd.Timestamp.now()}
-- **Train/Test Split**: {train_end_date}
+- **Train Period**: Up to {train_end_date}
+- **Validation Period**: {train_end_date} to {val_end_date} (for walk-forward hyperparameter tuning)
+- **Test Period**: After {val_end_date}
 - **Assets**: {', '.join(tickers)}
 - **Total Features**: {features_scaled.shape[1]}
 - **Train Samples**: {train_mask.sum()}
+- **Validation Samples**: {val_mask.sum()}
 - **Test Samples**: {test_mask.sum()}
+
+## Three-Way Split Strategy
+
+This dataset implements a **walk-forward validation** approach:
+
+1. **Train Set** ({train_end_date} and earlier): Used for initial model training
+2. **Validation Set** ({train_end_date} to {val_end_date}): Used for hyperparameter tuning and model selection
+3. **Test Set** (After {val_end_date}): Held-out data for final performance evaluation
+
+**Important**: The test set should NEVER be used during model development or tuning. Use train + validation for all experimentation.
 
 ## Directory Structure
 
@@ -299,16 +353,24 @@ exported_data/
 ├── per_asset/           # Per-asset model training data
 │   ├── SPY/
 │   │   ├── X_train.parquet  ({asset_metadata.get('SPY', {}).get('n_features', 'N/A')} features)
+│   │   ├── X_val.parquet
 │   │   ├── X_test.parquet
 │   │   ├── y_train.parquet  (SPY returns)
+│   │   ├── y_val.parquet
 │   │   ├── y_test.parquet
 │   │   └── metadata.json
 │   └── (... 5 more assets)
 │
 ├── global/              # RL ensemble training data
 │   ├── X_train.parquet  ({X_train_global.shape[1]} features × {len(X_train_global)} samples)
+│   ├── X_val.parquet
+│   ├── X_test.parquet
 │   ├── y_train.parquet  ({y_train_global.shape[1]} targets)
-│   └── prices_train.parquet
+│   ├── y_val.parquet
+│   ├── y_test.parquet
+│   ├── prices_train.parquet
+│   ├── prices_val.parquet
+│   └── prices_test.parquet
 │
 ├── scalers/
 │   └── global_scaler.joblib
@@ -330,15 +392,21 @@ data_dir = Path("data/exported_data/per_asset") / ticker
 
 X_train = pd.read_parquet(data_dir / "X_train.parquet")
 y_train = pd.read_parquet(data_dir / "y_train.parquet")
+X_val = pd.read_parquet(data_dir / "X_val.parquet")
+y_val = pd.read_parquet(data_dir / "y_val.parquet")
 X_test = pd.read_parquet(data_dir / "X_test.parquet")
 y_test = pd.read_parquet(data_dir / "y_test.parquet")
 
-# Train model
+# Train model with validation-based early stopping
 from lightgbm import LGBMRegressor
-model = LGBMRegressor(n_estimators=100, learning_rate=0.05)
-model.fit(X_train, y_train[ticker])
+model = LGBMRegressor(n_estimators=1000, learning_rate=0.05)
+model.fit(
+    X_train, y_train[ticker],
+    eval_set=[(X_val, y_val[ticker])],
+    callbacks=[lgb.early_stopping(50)]
+)
 
-# Predict
+# Final evaluation on test set
 predictions = model.predict(X_test)
 ```
 
@@ -347,6 +415,7 @@ predictions = model.predict(X_test)
 ```python
 # Load global dataset with all assets
 X_train = pd.read_parquet("data/exported_data/global/X_train.parquet")
+X_val = pd.read_parquet("data/exported_data/global/X_val.parquet")
 y_train = pd.read_parquet("data/exported_data/global/y_train.parquet")
 prices = pd.read_parquet("data/exported_data/global/prices_train.parquet")
 
@@ -384,7 +453,7 @@ Generated by ZenML Data Pipeline v1.0
 """
     
     readme_path = base_path / "README.txt"
-    readme_path.write_text(readme_content)
+    readme_path.write_text(readme_content, encoding='utf-8')
     
     print(f"  ✅ Saved README.txt")
     

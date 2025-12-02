@@ -27,8 +27,10 @@ if __name__ == "__main__":
     start_date = "2010-01-01"
     end_date = "2024-12-31"
     
-    # Train/test split (use 2017 as split point)
-    train_end_date = "2017-12-29"
+    # Train/validation/test split
+    train_end_date = "2017-12-29"  # Train: 2010-2017
+    val_end_date = "2020-12-31"    # Validation: 2018-2020
+                                     # Test: 2021-2024
     
     # Alternative data (VIX, yields, commodities, etc.)
     include_alternative_data = True
@@ -45,19 +47,23 @@ if __name__ == "__main__":
     print(f"  Start date: {start_date}")
     print(f"  End date: {end_date}")
     print(f"  Train end: {train_end_date}")
+    print(f"  Validation end: {val_end_date}")
     print(f"  Alternative data: {'Enabled' if include_alternative_data else 'Disabled'}")
     print(f"  Scaling method: {scaling_method}")
     
     from datetime import datetime
     train_end = datetime.strptime(train_end_date, "%Y-%m-%d")
+    val_end = datetime.strptime(val_end_date, "%Y-%m-%d")
     end = datetime.strptime(end_date, "%Y-%m-%d")
     
     train_years = (train_end - datetime.strptime(start_date, "%Y-%m-%d")).days / 365.25
-    test_years = (end - train_end).days / 365.25
+    val_years = (val_end - train_end).days / 365.25
+    test_years = (end - val_end).days / 365.25
     
     print(f"\nTemporal split:")
-    print(f"  Train period: {train_years:.1f} years ({start_date} to {train_end_date})")
-    print(f"  Test period:  {test_years:.1f} years ({train_end_date} to {end_date})")
+    print(f"  Train period:      {train_years:.1f} years ({start_date} to {train_end_date})")
+    print(f"  Validation period: {val_years:.1f} years ({train_end_date} to {val_end_date})")
+    print(f"  Test period:       {test_years:.1f} years ({val_end_date} to {end_date})")
     
     # ========================================================================
     # RUN PIPELINE
@@ -75,6 +81,7 @@ if __name__ == "__main__":
         start_date=start_date,
         end_date=end_date,
         train_end_date=train_end_date,
+        val_end_date=val_end_date,
         include_alternative_data=include_alternative_data,
         scaling_method=scaling_method,
     )

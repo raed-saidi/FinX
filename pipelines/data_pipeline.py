@@ -16,8 +16,8 @@ from steps.save_raw_step import save_raw_data_step
 from steps.save_processed_step import save_processed_data_step
 from steps.export_for_models_step import export_for_models
 
-# VectorDB step
-from steps.vectordb_index_step import vectordb_index_step
+# VectorDB step - Qdrant (production-ready)
+from steps.qdrant_index_step import index_features_in_qdrant
 
 
 @pipeline
@@ -32,9 +32,8 @@ def data_pipeline(
     save_raw_dir: str = "./data/raw",
     save_processed_dir: str = "./data/processed",
     save_exported_dir: str = "./data/exported_data",
-    save_vectordb_dir: str = "./data/vectordb",
     enable_vectordb: bool = True,
-    vectordb_window_size: int = 30,
+    qdrant_config_path: str = "./config/qdrant_config.yaml",
 ):
     """
     PRODUCTION-READY FINANCIAL DATA PIPELINE
@@ -163,16 +162,14 @@ def data_pipeline(
     )
     
     # =========================================================================
-    # STAGE 8: VECTOR DATABASE INDEXING (Optional - for similarity search)
+    # STAGE 8: QDRANT VECTOR DATABASE (Production-Ready Similarity Search)
     # =========================================================================
     if enable_vectordb:
-        vectordb_summary = vectordb_index_step(
+        vectordb_summary = index_features_in_qdrant(
             features_scaled=features_scaled,
             returns_clipped=returns_clipped,
             tickers=tickers,
-            output_dir=save_vectordb_dir,
-            window_size=vectordb_window_size,
-            index_type="L2",
+            config_path=qdrant_config_path,
         )
     
     # Pipeline complete - all artifacts saved and versioned by ZenML

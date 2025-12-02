@@ -84,6 +84,8 @@ if __name__ == "__main__":
         val_end_date=val_end_date,
         include_alternative_data=include_alternative_data,
         scaling_method=scaling_method,
+        enable_vectordb=True,  # Enable Qdrant vector database
+        qdrant_config_path="./config/qdrant_config.yaml",
     )
     
     print("\n" + "="*80)
@@ -93,3 +95,5 @@ if __name__ == "__main__":
     print(f"\nPipeline run: {pipeline_run}")
     print(f"\nAll artifacts have been saved and versioned by ZenML.")
     print(f"To access artifacts, run: python load_pipeline_artifacts.py")
+    print(f"\nQdrant vector database indexed successfully!")
+    print(f"Query examples: python scripts/query_qdrant_example.py")

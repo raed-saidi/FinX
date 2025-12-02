@@ -1,7 +1,7 @@
 # Exported ML Data - Ready for Training
 
 ## Pipeline Run Summary
-- **Created**: 2025-12-02 14:52:47.150363
+- **Created**: 2025-12-02 15:01:22.267707
 - **Train Period**: Up to 2017-12-29
 - **Validation Period**: 2017-12-29 to 2020-12-31 (for walk-forward hyperparameter tuning)
 - **Test Period**: After 2020-12-31

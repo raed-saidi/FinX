@@ -16,6 +16,9 @@ from steps.save_raw_step import save_raw_data_step
 from steps.save_processed_step import save_processed_data_step
 from steps.export_for_models_step import export_for_models
 
+# VectorDB step
+from steps.vectordb_index_step import vectordb_index_step
+
 
 @pipeline
 def data_pipeline(
@@ -29,6 +32,9 @@ def data_pipeline(
     save_raw_dir: str = "./data/raw",
     save_processed_dir: str = "./data/processed",
     save_exported_dir: str = "./data/exported_data",
+    save_vectordb_dir: str = "./data/vectordb",
+    enable_vectordb: bool = True,
+    vectordb_window_size: int = 30,
 ):
     """
     PRODUCTION-READY FINANCIAL DATA PIPELINE
@@ -58,6 +64,10 @@ def data_pipeline(
         scaling_method: 'standard', 'robust', or 'minmax'
         save_raw_dir: Raw data directory
         save_processed_dir: Processed data directory
+        save_exported_dir: ML-ready exports directory
+        save_vectordb_dir: VectorDB index directory (default: ./data/vectordb)
+        enable_vectordb: Enable VectorDB indexing for similarity search (default: True)
+        vectordb_window_size: Window size for VectorDB (default: 30 days)
         save_exported_dir: ML-ready exports directory
     
     Outputs:
@@ -151,6 +161,19 @@ def data_pipeline(
         tickers=tickers,
         output_dir=save_exported_dir,
     )
+    
+    # =========================================================================
+    # STAGE 8: VECTOR DATABASE INDEXING (Optional - for similarity search)
+    # =========================================================================
+    if enable_vectordb:
+        vectordb_summary = vectordb_index_step(
+            features_scaled=features_scaled,
+            returns_clipped=returns_clipped,
+            tickers=tickers,
+            output_dir=save_vectordb_dir,
+            window_size=vectordb_window_size,
+            index_type="L2",
+        )
     
     # Pipeline complete - all artifacts saved and versioned by ZenML
     # Access via: python load_pipeline_artifacts.py

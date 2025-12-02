@@ -1,0 +1,1 @@
+import{j as s}from"./@radix-D8tIKeo-.js";import{S as r}from"./clock-COypnJ_0.js";import{T as a}from"./index-rPJfPIfq.js";function c({...e}){return s.jsxs(a,{rounded:!1,className:"inline-flex",emphasis:"subtle",color:"blue",...e,children:[s.jsx(r,{className:"h-4 w-4 shrink-0 fill-current"}),s.jsx("span",{className:"truncate",children:"Schedule"})]})}export{c as S};

@@ -1,6 +1,6 @@
 {
   "ticker": "AAPL",
-  "n_features": 68,
+  "n_features": 76,
   "feature_names": [
     "AAPL_rsi14",
     "AAPL_macd",
@@ -54,6 +54,14 @@
     "AAPL_autocorr_1",
     "AAPL_autocorr_5",
     "AAPL_autocorr_10",
+    "AAPL_mkt_corr_20",
+    "AAPL_mkt_corr_60",
+    "AAPL_mkt_corr_120",
+    "AAPL_beta_60",
+    "AAPL_beta_120",
+    "AAPL_rel_strength_20",
+    "AAPL_rel_strength_60",
+    "AAPL_rel_vol",
     "ew_value",
     "ew_vol_5",
     "ew_vol_20",
@@ -71,11 +79,11 @@
     "regime_1",
     "regime_2"
   ],
-  "train_samples": 1706,
+  "train_samples": 1161,
   "val_samples": 756,
   "test_samples": 1004,
   "train_date_range": {
-    "start": "2011-01-04",
+    "start": "2013-05-23",
     "end": "2017-12-29"
   },
   "val_date_range": {
@@ -87,22 +95,22 @@
     "end": "2024-12-30"
   },
   "train_stats": {
-    "y_mean": 0.0008351323128839879,
-    "y_std": 0.014312001607463763,
-    "y_min": -0.03950568362779229,
-    "y_max": 0.04048000297965111,
-    "y_sharpe_ann": 0.9263075028888725
+    "y_mean": 0.0009555514970147438,
+    "y_std": 0.01372120895811476,
+    "y_min": -0.049525178569087704,
+    "y_max": 0.05103372909512395,
+    "y_sharpe_ann": 1.1055082538574716
   },
   "val_stats": {
-    "y_mean": 0.0017346427074923195,
-    "y_std": 0.01778654167644635,
-    "y_min": -0.03950568362779229,
-    "y_max": 0.04048000297965111,
-    "y_sharpe_ann": 1.548170510399089
+    "y_mean": 0.001660932987195195,
+    "y_std": 0.019055630885443063,
+    "y_min": -0.049525178569087704,
+    "y_max": 0.05103372909512395,
+    "y_sharpe_ann": 1.3836589262922028
   },
   "test_stats": {
-    "y_mean": 0.0006015504293232983,
-    "y_std": 0.015797428162366414,
-    "y_sharpe_ann": 0.6044855481647615
+    "y_mean": 0.000594073577868453,
+    "y_std": 0.01626866941685695,
+    "y_sharpe_ann": 0.5796802088383523
   }
 }

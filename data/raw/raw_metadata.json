@@ -1,11 +1,20 @@
 {
   "tickers": [
-    "INTC",
     "AAPL",
     "NVDA",
+    "TSLA",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "META",
+    "SPY",
+    "QQQ",
+    "EFA",
     "IEF",
     "HYG",
-    "BIL"
+    "BIL",
+    "INTC",
+    "AMD"
   ],
   "price_types": [
     "Adj Close",

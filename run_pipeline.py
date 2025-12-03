@@ -10,17 +10,35 @@ if __name__ == "__main__":
     print("="*80)
     
     # ========================================================================
-    # CONFIGURATION
+    # CONFIGURATION - 15 STOCKS UNIVERSE
     # ========================================================================
     
-    # Asset universe (diversified across asset classes)
+    # Asset universe: 15 stocks across major indices and sectors
     tickers = [
-        "INTC",   
-        "AAPL",   
-        "NVDA",   
-        "IEF",   
-        "HYG",   
-        "BIL",   
+        # US Tech Giants
+        "AAPL",   # Apple
+        "NVDA",   # NVIDIA
+        "TSLA",   # Tesla
+        "MSFT",   # Microsoft
+        "GOOGL",  # Alphabet/Google
+        "AMZN",   # Amazon
+        "META",   # Meta/Facebook
+        
+        # US Indices ETFs
+        "SPY",    # S&P 500 ETF
+        "QQQ",    # NASDAQ 100 ETF
+        
+        # European (CAC40 exposure)
+        "EFA",    # iShares MSCI EAFE (Europe, Australasia, Far East)
+        
+        # Bonds/Fixed Income
+        "IEF",    # 7-10 Year Treasury
+        "HYG",    # High Yield Corporate Bonds
+        "BIL",    # Short-term Treasury (cash proxy)
+        
+        # Semiconductors
+        "INTC",   # Intel
+        "AMD",    # AMD
     ]
     
     # Date range

@@ -1,815 +1,593 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Bot, 
-  MessageCircle, 
-  DollarSign,
-  Activity,
-  Zap,
-  Send,
-  LogOut,
-  User,
-  X,
+import { motion } from 'framer-motion';
+import {
+  TrendingUp,
+  TrendingDown,
   BarChart3,
+  DollarSign,
+  Bot,
   Wallet,
-  ShoppingCart,
-  Play,
-  Square,
-  RefreshCw
+  Activity,
+  Settings,
+  ExternalLink,
+  Shield,
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { useDashboardStore } from '@/store/dashboard-store';
+import EnhancedChart from '@/components/charts/EnhancedChart';
+import InvestModal from '@/components/invest/InvestModal';
+import StockLogo from '@/components/ui/StockLogo';
+// Watchlist removed from dashboard
+import EquityChart from '@/components/dashboard/EquityChart';
+import BotConfigModal from '@/components/bot/BotConfigModal';
+import DataFreshnessIndicator from '@/components/ui/DataFreshnessIndicator';
+import { Skeleton, CardSkeleton, ChartSkeleton, TableSkeleton } from '@/components/ui/Skeleton';
+import { Recommendation } from '@/lib/types';
+import { useAppSettings } from '@/hooks/useAppSettings';
+import MarketTicker from '@/components/ui/MarketTicker';
+import MiniSparkline from '@/components/ui/MiniSparkline';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Stock colors mapping
+const stockColors: Record<string, { bg: string; color: string }> = {
+  AAPL: { bg: 'from-gray-500 to-gray-600', color: 'text-gray-400' },
+  NVDA: { bg: 'from-green-500 to-emerald-500', color: 'text-green-400' },
+  TSLA: { bg: 'from-red-500 to-rose-500', color: 'text-red-400' },
+  MSFT: { bg: 'from-slate-500 to-gray-600', color: 'text-slate-400' },
+  GOOGL: { bg: 'from-yellow-500 to-amber-500', color: 'text-yellow-400' },
+  AMZN: { bg: 'from-orange-500 to-amber-500', color: 'text-orange-400' },
+  META: { bg: 'from-slate-400 to-gray-600', color: 'text-slate-400' },
+  SPY: { bg: 'from-purple-500 to-violet-500', color: 'text-purple-400' },
+  QQQ: { bg: 'from-cyan-500 to-teal-500', color: 'text-cyan-400' },
+  AMD: { bg: 'from-red-600 to-red-700', color: 'text-red-400' },
+};
 
-// Types
-interface Position {
-  symbol: string;
-  shares: number;
-  avg_price: number;
-  current_price: number;
-  pnl: number;
-  pnl_pct: number;
-}
-
-interface Portfolio {
-  cash: number;
-  positions: Position[];
-  total_value: number;
-}
-
-interface Recommendation {
-  asset: string;
-  signal: number;
-  direction: string;
-  weight_pct: number;
-  current_price: number;
-}
-
-interface AlpacaAccount {
-  buying_power: number;
-  cash: number;
-  portfolio_value: number;
-  equity: number;
-  status: string;
-}
-
-interface BotStatus {
-  status: string;
-  mode: string;
-  trades_today: number;
-  alpaca_connected: boolean;
-  alpaca_account: AlpacaAccount | null;
-}
-
-// Trade Modal
-function TradeModal({ 
-  isOpen, 
-  onClose, 
-  symbol, 
-  currentPrice,
-  onTrade 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void;
-  symbol: string;
-  currentPrice: number;
-  onTrade: (symbol: string, shares: number, action: 'buy' | 'sell') => void;
-}) {
-  const [shares, setShares] = useState(1);
-  const [action, setAction] = useState<'buy' | 'sell'>('buy');
-
-  if (!isOpen) return null;
-
-  const total = shares * currentPrice;
-
-  return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="card p-6 w-full max-w-sm animate-fade-in">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold">{symbol}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-white">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="text-center mb-6">
-          <p className="text-3xl font-bold">${currentPrice.toFixed(2)}</p>
-          <p className="text-gray-500 text-sm">Current Price</p>
-        </div>
-
-        {/* Buy/Sell Toggle */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setAction('buy')}
-            className={`flex-1 py-3 rounded-lg font-semibold transition ${
-              action === 'buy' 
-                ? 'bg-green-500 text-white' 
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
-            }`}
-          >
-            Buy
-          </button>
-          <button
-            onClick={() => setAction('sell')}
-            className={`flex-1 py-3 rounded-lg font-semibold transition ${
-              action === 'sell' 
-                ? 'bg-red-500 text-white' 
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
-            }`}
-          >
-            Sell
-          </button>
-        </div>
-
-        {/* Shares Input */}
-        <div className="mb-6">
-          <label className="text-sm text-gray-500 mb-2 block">Shares</label>
-          <input
-            type="number"
-            min="1"
-            value={shares}
-            onChange={(e) => setShares(Math.max(1, parseInt(e.target.value) || 1))}
-            className="input text-center text-2xl font-bold"
-          />
-        </div>
-
-        {/* Total */}
-        <div className="bg-white/5 rounded-lg p-4 mb-6">
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-500">Estimated Total</span>
-            <span className="font-semibold">${total.toFixed(2)}</span>
-          </div>
-        </div>
-
-        {/* Execute Button */}
-        <button
-          onClick={() => {
-            onTrade(symbol, shares, action);
-            onClose();
-          }}
-          className={`w-full py-4 rounded-lg font-bold text-lg transition ${
-            action === 'buy'
-              ? 'bg-green-500 hover:bg-green-600 text-white'
-              : 'bg-red-500 hover:bg-red-600 text-white'
-          }`}
-        >
-          {action === 'buy' ? 'Buy' : 'Sell'} {shares} Share{shares > 1 ? 's' : ''}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Stock Chart Component
-function StockChart({ symbol, onClose }: { symbol: string; onClose: () => void }) {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/chart/${symbol}`)
-      .then(res => res.json())
-      .then(d => {
-        setData(d);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [symbol]);
-
-  if (loading) {
-    return (
-      <div className="card p-6">
-        <div className="animate-pulse flex items-center justify-center h-64">
-          <RefreshCw className="w-8 h-8 animate-spin text-gray-500" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) return null;
-  const isPositive = data.change_pct >= 0;
-
-  return (
-    <div className="card overflow-hidden">
-      <div className="p-4 border-b border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <BarChart3 className="w-5 h-5 text-gray-400" />
-          <div>
-            <h3 className="font-bold">{data.symbol}</h3>
-            <p className="text-sm text-gray-500">3 Month Chart</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-xl font-bold">${data.current_price}</p>
-            <p className={isPositive ? 'text-profit text-sm' : 'text-loss text-sm'}>
-              {isPositive ? '+' : ''}{data.change_pct.toFixed(2)}%
-            </p>
-          </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-white">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-      <div className="p-4 h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data.data}>
-            <defs>
-              <linearGradient id={`gradient-${symbol}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={isPositive ? "#22c55e" : "#ef4444"} stopOpacity={0.3}/>
-                <stop offset="95%" stopColor={isPositive ? "#22c55e" : "#ef4444"} stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <XAxis 
-              dataKey="time" 
-              tick={{ fontSize: 10, fill: '#6b7280' }}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(v) => v.slice(5)}
-            />
-            <YAxis 
-              tick={{ fontSize: 10, fill: '#6b7280' }}
-              tickLine={false}
-              axisLine={false}
-              domain={['auto', 'auto']}
-              tickFormatter={(v) => `$${v}`}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: '#0a0a0a', 
-                border: '1px solid #1a1a1a',
-                borderRadius: '8px'
-              }}
-              formatter={(value: number) => [`$${value.toFixed(2)}`, 'Price']}
-            />
-            <Area 
-              type="monotone" 
-              dataKey="close" 
-              stroke={isPositive ? "#22c55e" : "#ef4444"}
-              strokeWidth={2}
-              fill={`url(#gradient-${symbol})`}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-}
-
-// Chat Panel
-function ChatPanel() {
-  const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
-    
-    const userMessage = input;
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-    setInput('');
-    setLoading(true);
-    
-    try {
-      const res = await fetch(`${API_URL}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage })
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-      } else {
-        throw new Error('Failed to get response');
-      }
-    } catch (error) {
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: 'Sorry, I had trouble connecting. Please try again!' 
-      }]);
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="card h-[400px] flex flex-col">
-      <div className="p-4 border-b border-white/5 flex items-center gap-2">
-        <MessageCircle className="w-5 h-5 text-gray-400" />
-        <h3 className="font-semibold">AI Assistant</h3>
-        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full ml-auto">
-          Groq
-        </span>
-      </div>
-      
-      <div className="flex-1 p-4 overflow-y-auto space-y-3">
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] p-3 rounded-lg text-sm ${
-              msg.role === 'user' 
-                ? 'bg-white text-black' 
-                : 'bg-white/5 text-gray-200'
-            }`}>
-              <p className="whitespace-pre-wrap">{msg.content}</p>
-            </div>
-          </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-white/5 p-3 rounded-lg">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-              </div>
-            </div>
-          </div>
-        )}
-        {messages.length === 0 && !loading && (
-          <div className="text-center text-gray-600 py-8">
-            <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>Ask about stocks or trading</p>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-      
-      <div className="p-4 border-t border-white/5">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="Ask about stocks..."
-            className="input flex-1"
-            disabled={loading}
-          />
-          <button 
-            onClick={sendMessage}
-            disabled={loading || !input.trim()}
-            className="btn-primary p-3"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Main Dashboard
-export default function Dashboard() {
+export default function DashboardPage() {
+  const [selectedStock, setSelectedStock] = useState<string>('AAPL');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showInvestModal, setShowInvestModal] = useState(false);
+  const [showBotConfig, setShowBotConfig] = useState(false);
+  const [investMode, setInvestMode] = useState<'single' | 'batch'>('batch');
+  const [selectedRecommendation, setSelectedRecommendation] = useState<Recommendation | null>(null);
+  const [stockGridPage, setStockGridPage] = useState(0); // For 2x2 grid pagination
+  
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [botStatus, setBotStatus] = useState<BotStatus>({ 
-    status: 'stopped', 
-    mode: 'paper', 
-    trades_today: 0,
-    alpaca_connected: false,
-    alpaca_account: null
-  });
-  const [selectedChart, setSelectedChart] = useState<string | null>(null);
-  const [tradeModal, setTradeModal] = useState<{ symbol: string; price: number } | null>(null);
-  const [loading, setLoading] = useState(true);
+  
+  const { 
+    portfolio,
+    totalBalance, 
+    availableCash,
+    fetchPortfolio, 
+    fetchBotStatus, 
+    fetchRecommendations,
+    fetchBacktest,
+    botStatus,
+    recommendations,
+    backtest,
+    loadingStates,
+    initializeFromStorage
+  } = useDashboardStore();
+
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    
-    if (!savedUser || !token) {
-      router.push('/');
-      return;
-    }
-    
-    setUser(JSON.parse(savedUser));
-    fetchData(token);
-  }, [router]);
+    setMounted(true);
+    initializeFromStorage();
+    fetchPortfolio();
+    fetchBotStatus();
+    fetchRecommendations();
+    fetchBacktest();
+    setLastUpdate(new Date());
+    // No auto-refresh - use manual refresh or WebSocket for updates
+  }, []);
 
-  const fetchData = async (token: string) => {
-    setLoading(true);
-    try {
-      const [portfolioRes, recsRes, botRes] = await Promise.all([
-        fetch(`${API_URL}/api/user/portfolio`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch(`${API_URL}/api/recommendations`),
-        fetch(`${API_URL}/api/bot/status`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
-      ]);
-
-      if (portfolioRes.ok) setPortfolio(await portfolioRes.json());
-      if (recsRes.ok) setRecommendations(await recsRes.json());
-      if (botRes.ok) {
-        const botData = await botRes.json();
-        setBotStatus(prev => ({ ...prev, ...botData }));
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-    setLoading(false);
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([
+      fetchPortfolio(),
+      fetchBotStatus(),
+      fetchRecommendations(),
+      fetchBacktest()
+    ]);
+    setLastUpdate(new Date());
+    setIsRefreshing(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/');
+  const handleInvestClick = (rec: Recommendation) => {
+    setSelectedRecommendation(rec);
+    setInvestMode('single');
+    setShowInvestModal(true);
   };
 
-  const handleTrade = async (symbol: string, shares: number, action: 'buy' | 'sell') => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
-    try {
-      const res = await fetch(`${API_URL}/api/user/trade`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({ symbol, shares, action })
-      });
-
-      if (res.ok) {
-        fetchData(token);
-      } else {
-        const data = await res.json();
-        alert(data.detail || 'Trade failed');
-      }
-    } catch (error) {
-      alert('Trade failed');
-    }
+  const handleBatchInvest = () => {
+    setSelectedRecommendation(null);
+    setInvestMode('batch');
+    setShowInvestModal(true);
   };
 
-  const toggleBot = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+  const longRecommendations = recommendations.filter(r => r.direction === 'LONG');
 
-    const endpoint = botStatus.status === 'running' ? '/api/bot/stop' : '/api/bot/start';
-    try {
-      const res = await fetch(`${API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setBotStatus(prev => ({ ...prev, status: data.status }));
-      }
-    } catch (error) {
-      console.error('Bot toggle failed:', error);
-    }
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
-  // Default portfolio for demo
-  const displayPortfolio = portfolio || {
-    cash: 100000,
-    positions: [],
-    total_value: 100000
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
   };
-
-  // Demo recommendations if none loaded
-  const displayRecs = recommendations.length > 0 ? recommendations : [
-    { asset: 'META', signal: 0.0482, direction: 'LONG', weight_pct: 12.5, current_price: 568.40 },
-    { asset: 'AAPL', signal: 0.0341, direction: 'LONG', weight_pct: 10.2, current_price: 237.50 },
-    { asset: 'NVDA', signal: 0.0245, direction: 'LONG', weight_pct: 8.5, current_price: 138.00 },
-    { asset: 'QQQ', signal: 0.0287, direction: 'LONG', weight_pct: 9.8, current_price: 515.20 },
-    { asset: 'SPY', signal: 0.0198, direction: 'LONG', weight_pct: 7.2, current_price: 600.15 },
-  ];
-
-  const positionsValue = displayPortfolio.positions.reduce((sum, p) => sum + (p.shares * p.current_price), 0);
-  const totalPnl = displayPortfolio.positions.reduce((sum, p) => sum + p.pnl, 0);
-
-  if (!user) return null;
 
   return (
-    <main className="min-h-screen">
-      {/* Trade Modal */}
-      {tradeModal && (
-        <TradeModal
-          isOpen={true}
-          onClose={() => setTradeModal(null)}
-          symbol={tradeModal.symbol}
-          currentPrice={tradeModal.price}
-          onTrade={handleTrade}
-        />
-      )}
-
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-sm border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Zap className="w-6 h-6" />
-            <span className="font-semibold text-lg">SmartInvest</span>
+    <>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-6"
+      >
+        {/* Header with Actions */}
+        <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground text-sm mt-1">AI-Powered Stock Trading</p>
           </div>
-          
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <User className="w-4 h-4" />
-              {user.name}
-            </div>
-            <button 
-              onClick={handleLogout}
-              className="text-gray-400 hover:text-white transition p-2"
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Live Indicator */}
+            <DataFreshnessIndicator 
+              lastUpdate={lastUpdate} 
+              onRefresh={handleRefresh}
+              isRefreshing={isRefreshing}
+            />
+            <button
+              onClick={handleBatchInvest}
+              className="flex items-center gap-2 px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded transition"
             >
-              <LogOut className="w-5 h-5" />
+              <DollarSign className="w-5 h-5" />
+              Smart Invest
             </button>
           </div>
-        </div>
-      </nav>
+        </motion.div>
 
-      {/* Main Content */}
-      <div className="pt-24 pb-12 px-6 max-w-7xl mx-auto">
-        {/* Portfolio Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="card p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-white/5">
-                <Wallet className="w-5 h-5 text-gray-400" />
-              </div>
-              <span className="text-gray-500 text-sm">Total Value</span>
-            </div>
-            <p className="text-2xl font-bold">${displayPortfolio.total_value.toLocaleString()}</p>
-          </div>
-          
-          <div className="card p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-white/5">
-                <DollarSign className="w-5 h-5 text-gray-400" />
-              </div>
-              <span className="text-gray-500 text-sm">Cash</span>
-            </div>
-            <p className="text-2xl font-bold">${displayPortfolio.cash.toLocaleString()}</p>
-          </div>
-          
-          <div className="card p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-white/5">
-                <Activity className="w-5 h-5 text-gray-400" />
-              </div>
-              <span className="text-gray-500 text-sm">Positions Value</span>
-            </div>
-            <p className="text-2xl font-bold">${positionsValue.toLocaleString()}</p>
-          </div>
-          
-          <div className="card p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-white/5">
-                <TrendingUp className="w-5 h-5 text-gray-400" />
-              </div>
-              <span className="text-gray-500 text-sm">Total P&L</span>
-            </div>
-            <p className={`text-2xl font-bold ${totalPnl >= 0 ? 'text-profit' : 'text-loss'}`}>
-              {totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}
-            </p>
-          </div>
-        </div>
-
-        {/* Chart */}
-        {selectedChart && (
-          <div className="mb-8">
-            <StockChart symbol={selectedChart} onClose={() => setSelectedChart(null)} />
-          </div>
-        )}
-
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Portfolio & Recommendations */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Positions */}
-            <div className="card">
-              <div className="p-4 border-b border-white/5 flex items-center justify-between">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Wallet className="w-5 h-5 text-gray-400" />
-                  Your Positions
-                </h3>
-              </div>
-              <div className="p-4">
-                {displayPortfolio.positions.length === 0 ? (
-                  <div className="text-center py-8 text-gray-600">
-                    <ShoppingCart className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>No positions yet</p>
-                    <p className="text-sm">Buy stocks from recommendations below</p>
-                  </div>
-                ) : (
+        {/* Top Row - Portfolio Card + Top Stocks */}
+        <div className="grid grid-cols-12 gap-6">
+          {/* Portfolio Card */}
+          <motion.div
+            variants={itemVariants}
+            className="col-span-12 lg:col-span-5 bg-card border border-border rounded p-6"
+          >
+            {loadingStates.portfolio ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
                   <div className="space-y-2">
-                    {displayPortfolio.positions.map((pos, i) => (
-                      <div 
-                        key={i}
-                        onClick={() => setSelectedChart(pos.symbol)}
-                        className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                            pos.pnl >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                          }`}>
-                            {pos.pnl >= 0 ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                          </div>
-                          <div>
-                            <p className="font-semibold">{pos.symbol}</p>
-                            <p className="text-sm text-gray-500">{pos.shares} shares @ ${pos.avg_price.toFixed(2)}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold">${(pos.shares * pos.current_price).toFixed(2)}</p>
-                          <p className={`text-sm ${pos.pnl >= 0 ? 'text-profit' : 'text-loss'}`}>
-                            {pos.pnl >= 0 ? '+' : ''}{pos.pnl_pct.toFixed(2)}%
-                          </p>
-                        </div>
+                    <Skeleton width={120} height={14} />
+                    <Skeleton width={180} height={32} />
+                  </div>
+                  <Skeleton width={100} height={28} className="rounded-full" />
+                </div>
+                <div className="space-y-3">
+                  <Skeleton height={70} />
+                  <Skeleton height={70} />
+                </div>
+                <div className="pt-4 border-t border-border">
+                  <Skeleton width={150} height={12} className="mb-3" />
+                  <div className="grid grid-cols-3 gap-3">
+                    <Skeleton height={40} />
+                    <Skeleton height={40} />
+                    <Skeleton height={40} />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-muted-foreground text-sm mb-1">Total Portfolio Value</p>
+                    <h2 className="text-3xl font-bold text-foreground">
+                      ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </h2>
+                  </div>
+                  {portfolio && (
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${
+                      ((portfolio as any).daily_pnl_pct || 0) >= 0 
+                        ? 'bg-emerald-500/10' 
+                        : 'bg-red-500/10'
+                    }`}>
+                      {((portfolio as any).daily_pnl_pct || 0) >= 0 ? (
+                        <TrendingUp className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4 text-red-400" />
+                      )}
+                      <span className={`text-sm font-medium ${
+                        ((portfolio as any).daily_pnl_pct || 0) >= 0 
+                          ? 'text-emerald-400' 
+                          : 'text-red-400'
+                      }`}>
+                        {((portfolio as any).daily_pnl_pct || 0) >= 0 ? '+' : ''}{(Number.isFinite((portfolio as any).daily_pnl_pct) ? (portfolio as any).daily_pnl_pct : 0).toFixed(2)}% Today
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Portfolio Breakdown */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-muted rounded">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-500/20 rounded flex items-center justify-center">
+                        <DollarSign className="w-5 h-5 text-muted-foreground" />
                       </div>
-                    ))}
+                      <div>
+                        <p className="text-foreground font-medium">Available Cash</p>
+                        <p className="text-muted-foreground text-sm">Ready to invest</p>
+                      </div>
+                    </div>
+                    <p className="text-xl font-bold text-foreground">${availableCash.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-muted rounded">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-500/20 rounded flex items-center justify-center">
+                        <BarChart3 className="w-5 h-5 text-purple-400" />
+                      </div>
+                      <div>
+                        <p className="text-foreground font-medium">Invested</p>
+                        <p className="text-muted-foreground text-sm">{portfolio?.positions?.length || 0} positions</p>
+                      </div>
+                    </div>
+                    <p className="text-xl font-bold text-foreground">
+                      ${((totalBalance - availableCash) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Backtest Stats */}
+                {backtest && (
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <p className="text-muted-foreground text-xs mb-3">AI Model Performance (Backtest)</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center">
+                        <p className="text-emerald-400 font-bold">{backtest.sharpe_ratio}</p>
+                        <p className="text-gray-500 text-xs">Sharpe Ratio</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-emerald-400 font-bold">{backtest.win_rate}%</p>
+                        <p className="text-gray-500 text-xs">Win Rate</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-red-400 font-bold">-{backtest.max_drawdown}%</p>
+                        <p className="text-gray-500 text-xs">Max DD</p>
+                      </div>
+                    </div>
                   </div>
                 )}
+              </>
+            )}
+          </motion.div>
+
+          {/* Top 4 AI Recommendations - 2x2 Grid with Mini Charts */}
+          <motion.div 
+            variants={itemVariants}
+            className="col-span-12 lg:col-span-7"
+          >
+            {/* Header with Navigation */}
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-muted-foreground">Top AI Picks</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {stockGridPage + 1} / {Math.ceil(recommendations.length / 4)}
+                </span>
+                <button
+                  onClick={() => setStockGridPage(prev => Math.max(0, prev - 1))}
+                  disabled={stockGridPage === 0}
+                  className="w-7 h-7 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-gray-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setStockGridPage(prev => Math.min(Math.ceil(recommendations.length / 4) - 1, prev + 1))}
+                  disabled={stockGridPage >= Math.ceil(recommendations.length / 4) - 1}
+                  className="w-7 h-7 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-gray-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
-
-            {/* AI Recommendations */}
-            <div className="card">
-              <div className="p-4 border-b border-white/5 flex items-center justify-between">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-green-400" />
-                  AI Recommendations
-                </h3>
-                <span className="text-xs text-gray-500">Click to view chart</span>
-              </div>
-              <div className="p-4 space-y-2">
-                {displayRecs.slice(0, 5).map((rec, i) => {
+            
+            <div className="grid grid-cols-2 gap-4">
+              {loadingStates.recommendations ? (
+                <>
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="bg-card border border-border rounded-lg p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Skeleton variant="circular" width={36} height={36} />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton width="50%" height={14} />
+                          <Skeleton width="30%" height={12} />
+                        </div>
+                        <Skeleton width={60} height={20} className="rounded-full" />
+                      </div>
+                      <Skeleton height={50} className="mb-3" />
+                      <div className="flex justify-between">
+                        <Skeleton width="40%" height={12} />
+                        <Skeleton width="30%" height={12} />
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                recommendations.slice(stockGridPage * 4, stockGridPage * 4 + 4).map((rec, index) => {
                   const isPositive = rec.signal > 0;
+                  const iconStyle = stockColors[rec.asset] || { bg: 'from-gray-500 to-gray-600', color: 'text-gray-400' };
+                  
                   return (
-                    <div 
-                      key={i}
-                      className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition"
+                    <motion.div
+                      key={rec.asset}
+                      variants={itemVariants}
+                      onClick={() => router.push(`/dashboard/stock/${rec.asset}`)}
+                      className="bg-card border border-border rounded-lg p-4 hover:border-gray-500/50 transition-all cursor-pointer group"
                     >
-                      <div 
-                        className="flex items-center gap-3 flex-1 cursor-pointer"
-                        onClick={() => setSelectedChart(rec.asset)}
-                      >
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          isPositive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <StockLogo symbol={rec.asset} size="sm" />
+                          <div>
+                            <p className="text-foreground font-semibold flex items-center gap-1 text-sm">
+                              {rec.asset}
+                              <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </p>
+                            <p className="text-muted-foreground text-xs">${rec.current_price?.toFixed(2)}</p>
+                          </div>
+                        </div>
+                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                          rec.direction === 'LONG' ? 'bg-emerald-500/20 text-emerald-400' : 
+                          rec.direction === 'SHORT' ? 'bg-red-500/20 text-red-400' : 
+                          'bg-gray-500/20 text-gray-400'
                         }`}>
-                          {isPositive ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                        </div>
+                          {rec.direction}
+                        </span>
+                      </div>
+                      
+                      {/* Mini Chart */}
+                      <div className="mb-3 flex justify-center">
+                        <MiniSparkline 
+                          symbol={rec.asset} 
+                          width={140} 
+                          height={50}
+                          color={isPositive ? '#10b981' : '#ef4444'}
+                        />
+                      </div>
+                      
+                      {/* Stats */}
+                      <div className="flex items-center justify-between text-xs">
                         <div>
-                          <p className="font-semibold">{rec.asset}</p>
-                          <p className="text-sm text-gray-500">{rec.direction} • ${rec.current_price}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className={`font-semibold ${isPositive ? 'text-profit' : 'text-loss'}`}>
-                            {(rec.signal * 100).toFixed(2)}%
+                          <p className="text-muted-foreground">AI Signal</p>
+                          <p className={`font-semibold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {isPositive ? '+' : ''}{(rec.signal * 100).toFixed(2)}%
                           </p>
-                          <p className="text-xs text-gray-500">{rec.weight_pct.toFixed(1)}% weight</p>
                         </div>
-                        <button
-                          onClick={() => setTradeModal({ symbol: rec.asset, price: rec.current_price })}
-                          className="btn-primary text-sm py-2 px-4"
-                        >
-                          Trade
-                        </button>
+                        <div className="text-right">
+                          <p className="text-muted-foreground">Allocation</p>
+                          <p className="text-foreground font-medium">{rec.weight_pct}%</p>
+                        </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
-                })}
+                })
+              )}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Quick Invest Section - Below Top Row */}
+        <motion.div
+          variants={itemVariants}
+          className="bg-gradient-to-r from-emerald-500/10 via-card to-emerald-500/10 border border-emerald-500/20 rounded-lg p-6"
+        >
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Smart Invest</h3>
+                <p className="text-muted-foreground text-sm">Invest in AI-recommended stocks with one click</p>
               </div>
             </div>
-          </div>
-
-          {/* Right Column - Bot & Chat */}
-          <div className="space-y-6">
-            {/* Bot Status */}
-            <div className="card p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Bot className="w-5 h-5 text-gray-400" />
-                  <h3 className="font-semibold">Trading Bot</h3>
-                </div>
-                <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
-                  botStatus.status === 'running' 
-                    ? 'bg-green-500/20 text-green-400' 
-                    : 'bg-white/5 text-gray-500'
-                }`}>
-                  <span className={`w-2 h-2 rounded-full ${
-                    botStatus.status === 'running' ? 'bg-green-400 animate-pulse' : 'bg-gray-500'
-                  }`} />
-                  {botStatus.status === 'running' ? 'Running' : 'Stopped'}
-                </div>
-              </div>
-
-              {/* Alpaca Connection Status */}
-              <div className={`mb-4 p-3 rounded-lg ${
-                botStatus.alpaca_connected 
-                  ? 'bg-green-500/10 border border-green-500/20' 
-                  : 'bg-yellow-500/10 border border-yellow-500/20'
-              }`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={`w-2 h-2 rounded-full ${
-                    botStatus.alpaca_connected ? 'bg-green-400' : 'bg-yellow-400'
-                  }`} />
-                  <span className={`text-sm font-medium ${
-                    botStatus.alpaca_connected ? 'text-green-400' : 'text-yellow-400'
-                  }`}>
-                    Alpaca {botStatus.alpaca_connected ? 'Connected' : 'Disconnected'}
-                  </span>
-                </div>
-                {botStatus.alpaca_connected && botStatus.alpaca_account && (
-                  <div className="space-y-1 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Buying Power</span>
-                      <span className="text-white">${botStatus.alpaca_account.buying_power.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Portfolio Value</span>
-                      <span className="text-white">${botStatus.alpaca_account.portfolio_value.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Status</span>
-                      <span className="text-green-400 capitalize">{botStatus.alpaca_account.status}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="space-y-3 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Mode</span>
-                  <span className="capitalize">{botStatus.mode}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Trades Today</span>
-                  <span>{botStatus.trades_today}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Strategy</span>
-                  <span>XGBoost AI</span>
-                </div>
-              </div>
-              
-              <button 
-                onClick={toggleBot}
-                className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition ${
-                  botStatus.status === 'running'
-                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                    : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                }`}
+            
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Quick amounts */}
+              {[100, 500, 1000].map((amount) => (
+                <button
+                  key={amount}
+                  onClick={() => {
+                    setInvestMode('batch');
+                    setShowInvestModal(true);
+                  }}
+                  className="px-4 py-2 bg-card border border-border hover:border-emerald-500/50 rounded-lg text-foreground font-medium transition-all hover:bg-emerald-500/10"
+                >
+                  ${amount}
+                </button>
+              ))}
+              <button
+                onClick={handleBatchInvest}
+                className="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
               >
-                {botStatus.status === 'running' ? (
-                  <>
-                    <Square className="w-4 h-4" /> Stop Bot
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4" /> Start Bot
-                  </>
-                )}
+                <DollarSign className="w-4 h-4" />
+                Custom Amount
               </button>
             </div>
-
-            {/* Chat */}
-            <ChatPanel />
           </div>
+        </motion.div>
+
+        {/* Bottom Row - Trading Chart + All Recommendations */}
+        <div className="grid grid-cols-12 gap-6">
+          {/* Main Trading Chart - Enhanced with Candlestick/Line Toggle & Timeframes */}
+          <motion.div
+            variants={itemVariants}
+            className="col-span-12 xl:col-span-8"
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold text-foreground">Price Chart</h3>
+              </div>
+              
+              {/* Stock Selector */}
+              <select
+                value={selectedStock}
+                onChange={(e) => setSelectedStock(e.target.value)}
+                className="bg-card border border-border text-foreground px-4 py-2 rounded focus:outline-none focus:border-gray-500"
+              >
+                {recommendations.map((rec) => (
+                  <option key={rec.asset} value={rec.asset}>{rec.asset}</option>
+                ))}
+              </select>
+            </div>
+            
+            {/* Enhanced Chart with Candlestick/Line Toggle & Real Timeframes */}
+            <EnhancedChart 
+              symbol={selectedStock} 
+              height={480}
+              initialInterval="1d"
+            />
+          </motion.div>
+
+          {/* AI Recommendations List */}
+          <motion.div
+            variants={itemVariants}
+            className="col-span-12 xl:col-span-4 bg-card border border-border rounded overflow-hidden"
+          >
+            <div className="p-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Bot className="w-5 h-5 text-muted-foreground" />
+                <h3 className="text-foreground font-semibold">AI Recommendations</h3>
+              </div>
+              <p className="text-muted-foreground text-xs mt-1">Based on XGBoost Walk-Forward Model</p>
+            </div>
+
+            <div className="p-4 space-y-2 max-h-[440px] overflow-y-auto">
+              {recommendations.map((rec, index) => {
+                const isPositive = rec.signal > 0;
+                return (
+                  <motion.div
+                    key={rec.asset}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => handleInvestClick(rec)}
+                    className="flex items-center justify-between p-3 rounded hover:bg-muted transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <StockLogo symbol={rec.asset} size="sm" />
+                      <div>
+                        <span className="text-foreground font-medium">{rec.asset}</span>
+                        <p className="text-muted-foreground text-xs">${rec.current_price?.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {isPositive ? '+' : ''}{(rec.signal * 100).toFixed(2)}%
+                      </p>
+                      <p className={`text-xs px-1.5 py-0.5 rounded ${
+                        rec.direction === 'LONG' ? 'bg-emerald-500/20 text-emerald-400' : 
+                        rec.direction === 'SHORT' ? 'bg-red-500/20 text-red-400' : 
+                        'bg-gray-500/20 text-gray-400'
+                      }`}>
+                        {rec.direction}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
         </div>
 
-        {/* Performance Stats */}
-        <div className="mt-8 card p-6">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-gray-400" />
-            Model Performance (Backtest 2017-2024)
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="text-center p-4 bg-white/5 rounded-lg">
-              <p className="text-2xl font-bold text-profit">353.2%</p>
-              <p className="text-xs text-gray-500">Total Return</p>
+        {/* Quick Stats Row */}
+        <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="bg-card border border-border rounded p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded bg-gray-500/10 flex items-center justify-center">
+              <Wallet className="w-6 h-6 text-muted-foreground" />
             </div>
-            <div className="text-center p-4 bg-white/5 rounded-lg">
-              <p className="text-2xl font-bold text-profit">47.5%</p>
-              <p className="text-xs text-gray-500">Annual Return</p>
-            </div>
-            <div className="text-center p-4 bg-white/5 rounded-lg">
-              <p className="text-2xl font-bold">1.93</p>
-              <p className="text-xs text-gray-500">Sharpe Ratio</p>
-            </div>
-            <div className="text-center p-4 bg-white/5 rounded-lg">
-              <p className="text-2xl font-bold text-loss">25.8%</p>
-              <p className="text-xs text-gray-500">Max Drawdown</p>
-            </div>
-            <div className="text-center p-4 bg-white/5 rounded-lg">
-              <p className="text-2xl font-bold text-profit">75.2%</p>
-              <p className="text-xs text-gray-500">Win Rate</p>
+            <div>
+              <p className="text-muted-foreground text-sm">Total Balance</p>
+              <p className="text-foreground text-lg font-semibold">${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
             </div>
           </div>
-        </div>
-      </div>
-    </main>
+          
+          <div 
+            onClick={() => setShowBotConfig(true)}
+            className="bg-card border border-border rounded p-5 flex items-center gap-4 cursor-pointer hover:bg-muted transition"
+          >
+            <div className={`w-12 h-12 rounded ${botStatus?.running ? 'bg-green-500/10' : botStatus?.alpaca_connected ? 'bg-emerald-500/10' : 'bg-gray-500/10'} flex items-center justify-center`}>
+              <Bot className={`w-6 h-6 ${botStatus?.running ? 'text-green-400 animate-pulse' : botStatus?.alpaca_connected ? 'text-emerald-400' : 'text-gray-400'}`} />
+            </div>
+            <div className="flex-1">
+              <p className="text-muted-foreground text-sm">Trading Bot</p>
+              <p className={`text-lg font-semibold ${botStatus?.running ? 'text-green-400' : 'text-foreground'}`}>
+                {botStatus?.running ? 'Running' : botStatus?.alpaca_connected ? 'Ready' : 'Disconnected'}
+              </p>
+            </div>
+            <Settings className="w-5 h-5 text-gray-500" />
+          </div>
+          
+          <div className="bg-card border border-border rounded p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded bg-purple-500/10 flex items-center justify-center">
+              <BarChart3 className="w-6 h-6 text-purple-400" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-sm">Positions</p>
+              <p className="text-foreground text-lg font-semibold">{portfolio?.positions?.length || 0}</p>
+            </div>
+          </div>
+          
+          <div className="bg-card border border-border rounded p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded bg-amber-500/10 flex items-center justify-center">
+              <Activity className="w-6 h-6 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-muted-foreground text-sm">AI Signals</p>
+              <p className="text-foreground text-lg font-semibold">{longRecommendations.length} LONG</p>
+            </div>
+          </div>
+
+          <div 
+            onClick={() => router.push('/stress-test')}
+            className="bg-card border border-border rounded p-5 flex items-center gap-4 cursor-pointer hover:bg-muted transition group"
+          >
+            <div className="w-12 h-12 rounded bg-purple-500/10 flex items-center justify-center">
+              <Shield className="w-6 h-6 text-purple-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-muted-foreground text-sm">Risk Analysis</p>
+              <p className="text-foreground text-lg font-semibold group-hover:text-purple-400 transition">Stress Test</p>
+            </div>
+            <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-purple-400 transition" />
+          </div>
+        </motion.div>
+
+        {/* Equity Chart - Full Width */}
+        <motion.div variants={itemVariants} className="w-full">
+          <EquityChart />
+        </motion.div>
+      </motion.div>
+
+      {/* Investment Modal */}
+      <InvestModal
+        isOpen={showInvestModal}
+        onClose={() => setShowInvestModal(false)}
+        mode={investMode}
+        stock={selectedRecommendation}
+      />
+
+      {/* Bot Configuration Modal */}
+      <BotConfigModal
+        isOpen={showBotConfig}
+        onClose={() => setShowBotConfig(false)}
+      />
+    </>
   );
 }

@@ -50,11 +50,14 @@ const nextConfig = {
   },
   
   // Performance optimizations
-  swcMinify: true,
   compress: true,
   
-  // Disable telemetry
-  telemetry: false,
+  // Turbopack configuration (fix workspace root detection)
+  experimental: {
+    turbo: {
+      root: process.cwd(),
+    }
+  }
 }
 
 module.exports = nextConfig

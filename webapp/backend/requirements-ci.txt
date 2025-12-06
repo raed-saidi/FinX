@@ -1,0 +1,36 @@
+# CI/CD Requirements - Lightweight version without heavy ML dependencies
+# For full dependencies, see requirements.txt
+
+# FastAPI & Web Server
+fastapi>=0.115.0,<0.116.0
+uvicorn[standard]>=0.32.0,<0.33.0
+python-multipart>=0.0.12
+python-dotenv>=1.0.1
+websockets>=14.0,<15.0
+
+# API Clients
+groq>=0.11.0,<0.12.0
+alpaca-py>=0.32.0,<0.33.0
+
+# Data Science (lightweight)
+pandas>=2.2.0
+numpy>=1.26.0,<3.0.0
+scipy>=1.11.0
+scikit-learn>=1.3.0
+joblib>=1.3.0
+xgboost>=2.0.0
+
+# Pydantic (required by FastAPI)
+pydantic>=2.10.0,<3.0.0
+
+# Financial Data
+yfinance>=0.2.31
+pytz>=2023.3
+
+# Utilities
+python-dateutil>=2.8.0
+pyyaml>=6.0
+
+# NOTE: PyTorch and stable-baselines3 are excluded from CI builds
+# They add 2+ GB and are only needed for ML model training/inference
+# The API will gracefully handle missing ML dependencies

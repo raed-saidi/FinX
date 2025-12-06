@@ -1,0 +1,36 @@
+{
+  "tickers": [
+    "AAPL",
+    "NVDA",
+    "TSLA",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "META",
+    "SPY",
+    "QQQ",
+    "EFA",
+    "IEF",
+    "HYG",
+    "BIL",
+    "INTC",
+    "AMD"
+  ],
+  "price_types": [
+    "Adj Close",
+    "Close",
+    "High",
+    "Low",
+    "Open",
+    "Volume"
+  ],
+  "alternative_features": [
+    "VIX",
+    "YIELD_10Y",
+    "YIELD_2Y",
+    "YIELD_CURVE",
+    "DXY",
+    "OIL",
+    "SMALL_CAP"
+  ]
+}

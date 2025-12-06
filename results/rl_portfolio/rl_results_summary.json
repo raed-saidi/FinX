@@ -1,0 +1,65 @@
+{
+  "rl_metrics": {
+    "name": "PPO RL Agent",
+    "total_return": 9.126566760011348,
+    "annual_return": 3.5873026536889574,
+    "annual_volatility": 0.46704393494028607,
+    "sharpe_ratio": 7.638045131974693,
+    "max_drawdown": 0.47747834578839893,
+    "final_value": 10126566.760011349
+  },
+  "benchmark_metrics": {
+    "name": "Equal Weight",
+    "total_return": 7.136321228240302,
+    "annual_return": 2.697351896596064,
+    "annual_volatility": 0.35218841073744395,
+    "sharpe_ratio": 7.602044289276817,
+    "max_drawdown": 0.4107312513366525,
+    "final_value": 8136321.228240303
+  },
+  "config": {
+    "initial_balance": 1000000,
+    "transaction_cost": 0.001,
+    "max_position": 0.25,
+    "min_position": 0.0,
+    "risk_free_rate": 0.02,
+    "lookback_window": 20,
+    "rebalance_frequency": 5
+  },
+  "assets": [
+    "AAPL",
+    "NVDA",
+    "TSLA",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "META",
+    "SPY",
+    "QQQ",
+    "EFA",
+    "IEF",
+    "HYG",
+    "BIL",
+    "INTC",
+    "AMD"
+  ],
+  "training_timesteps": 100000,
+  "avg_weights": {
+    "AAPL": 0.002506267512217164,
+    "NVDA": 0.07425585389137268,
+    "TSLA": 0.0949881300330162,
+    "MSFT": 0.0,
+    "GOOGL": 0.17422723770141602,
+    "AMZN": 0.01636623963713646,
+    "META": 0.21961313486099243,
+    "SPY": 0.02781669795513153,
+    "QQQ": 0.07807286083698273,
+    "EFA": 0.10860002040863037,
+    "IEF": 0.004423083271831274,
+    "HYG": 0.0006966535584069788,
+    "BIL": 0.017526980489492416,
+    "INTC": 0.05402880162000656,
+    "AMD": 0.12687835097312927
+  },
+  "timestamp": "2025-12-03T00:04:10.183487"
+}

@@ -1,0 +1,137 @@
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:  # Manual trigger
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1  # Change to your preferred region
+  BACKEND_SERVICE: finx-backend
+  FRONTEND_SERVICE: finx-frontend
+
+jobs:
+  # ============ Deploy Backend to Cloud Run ============
+  deploy-backend:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Create Artifact Registry Repository
+        run: |
+          gcloud artifacts repositories create finx-docker-repo \
+            --repository-format=docker \
+            --location=$REGION \
+            --project=$PROJECT_ID \
+            || echo "Repository already exists"
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker $REGION-docker.pkg.dev
+
+      - name: Debug - Check files exist
+        run: |
+          echo "=== Checking required directories ==="
+          ls -la
+          echo "=== models directory ==="
+          ls -la models/ | head -20
+          echo "=== data/processed directory ==="
+          ls -la data/processed/
+          echo "=== webapp/backend directory ==="
+          ls -la webapp/backend/ | head -20
+
+      - name: Build and Push Backend Image
+        run: |
+          IMAGE_NAME=$REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$BACKEND_SERVICE:${{ github.sha }}
+          docker build --no-cache -f webapp/backend/Dockerfile -t $IMAGE_NAME .
+          docker tag $IMAGE_NAME $REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$BACKEND_SERVICE:latest
+          docker push $IMAGE_NAME
+          docker push $REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$BACKEND_SERVICE:latest
+
+      - name: Deploy Backend to Cloud Run
+        run: |
+          gcloud run deploy $BACKEND_SERVICE \
+            --image $REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$BACKEND_SERVICE:${{ github.sha }} \
+            --platform managed \
+            --region $REGION \
+            --allow-unauthenticated \
+            --service-account github-deployer@$PROJECT_ID.iam.gserviceaccount.com \
+            --set-secrets "GROQ_API_KEY=groq_api_key:latest,ALPACA_API_KEY=alpaca_api_key:latest,ALPACA_SECRET_KEY=alpaca_secret_key:latest,FRED_API_KEY=fred_api_key:latest,JWT_SECRET=jwt_secret:latest,PASSWORD_SALT=password_salt:latest" \
+            --memory 1Gi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 10
+
+      - name: Get Backend URL
+        id: backend-url
+        run: |
+          URL=$(gcloud run services describe $BACKEND_SERVICE --region $REGION --format 'value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "Backend deployed to: $URL"
+
+    outputs:
+      backend_url: ${{ steps.backend-url.outputs.url }}
+
+  # ============ Deploy Frontend to Cloud Run ============
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: deploy-backend  # Wait for backend to get URL
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker $REGION-docker.pkg.dev
+
+      - name: Build and Push Frontend Image
+        run: |
+          cd webapp/frontend
+          IMAGE_NAME=$REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$FRONTEND_SERVICE:${{ github.sha }}
+          BACKEND_URL=${{ needs.deploy-backend.outputs.backend_url }}
+          WS_URL=$(echo $BACKEND_URL | sed 's/https:/wss:/')
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=$BACKEND_URL \
+            --build-arg NEXT_PUBLIC_WS_URL=$WS_URL \
+            -t $IMAGE_NAME .
+          docker tag $IMAGE_NAME $REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$FRONTEND_SERVICE:latest
+          docker push $IMAGE_NAME
+          docker push $REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$FRONTEND_SERVICE:latest
+
+      - name: Deploy Frontend to Cloud Run
+        run: |
+          gcloud run deploy $FRONTEND_SERVICE \
+            --image $REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$FRONTEND_SERVICE:${{ github.sha }} \
+            --platform managed \
+            --region $REGION \
+            --allow-unauthenticated \
+            --memory 512Mi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 10
+
+      - name: Get Frontend URL
+        run: |
+          URL=$(gcloud run services describe $FRONTEND_SERVICE --region $REGION --format 'value(status.url)')
+          echo "🚀 Frontend deployed to: $URL"
+          echo "🔗 Backend API: ${{ needs.deploy-backend.outputs.backend_url }}"

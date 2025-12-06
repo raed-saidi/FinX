@@ -273,8 +273,7 @@ def generate_features_for_asset(ticker: str, prices: pd.DataFrame, returns: pd.D
 
 def load_model(asset: str):
     """Load XGBoost model for an asset."""
-    global _model_cache
-    
+    # _model_cache is module-level variable
     if asset in _model_cache:
         return _model_cache[asset]
     
@@ -296,8 +295,7 @@ def load_model(asset: str):
 
 def load_scaler():
     """Load the feature scaler."""
-    global _scaler_cache
-    
+    # _scaler_cache is module-level variable
     if 'scaler' in _scaler_cache:
         return _scaler_cache['scaler']
     

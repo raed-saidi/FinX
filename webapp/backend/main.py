@@ -167,7 +167,7 @@ bot_task: Optional[asyncio.Task] = None
 
 async def run_trading_bot():
     """Background task that executes the trading bot logic."""
-    global bot_state
+    # bot_state is used in the function
     print("🤖 Trading bot background task started")
     
     while bot_state["running"]:
@@ -287,7 +287,7 @@ async def lifespan(app: FastAPI):
     print("Starting Smart Investment AI Backend...")
     yield
     # Cleanup
-    global bot_task
+    # bot_task is module-level variable
     if bot_task and not bot_task.done():
         bot_task.cancel()
         try:
@@ -328,7 +328,7 @@ async def health_check():
         "dependencies": {
             "groq": groq_client is not None,
             "alpaca": alpaca_trading_available,
-            "qdrant": qdrant_manager.collection_name if qdrant_manager else None
+            "qdrant": getattr(qdrant_manager, 'collection_name', None) if qdrant_manager else None
         }
     }
 

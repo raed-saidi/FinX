@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { 
   TrendingUp, 
   Bot, 
@@ -16,7 +17,10 @@ import {
   Users,
   Globe,
   Smartphone,
+  LineChart,
+  Activity,
 } from 'lucide-react';
+import MarketTicker from '@/components/ui/MarketTicker';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -130,7 +134,11 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-[#12121A] border border-[#1E1E24] rounded p-8 w-full max-w-md relative animate-fade-in">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-[#0B0F1A] border border-[#1a2332] rounded-lg p-8 w-full max-w-md relative shadow-2xl"
+      >
         <button 
           onClick={() => { onClose(); resetForm(); }} 
           className="absolute top-4 right-4 text-gray-500 hover:text-white text-2xl transition"
@@ -138,16 +146,16 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
           ×
         </button>
         
-        <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mx-auto mb-4">
-            {requires2FA ? <Shield className="w-7 h-7 text-white" /> : <Zap className="w-7 h-7 text-white" />}
+        <div className=\"text-center mb-6\">
+          <div className=\"w-14 h-14 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center mx-auto mb-4\">
+            {requires2FA ? <Shield className=\"w-7 h-7 text-white\" /> : <LineChart className=\"w-7 h-7 text-white\" />}
           </div>
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className=\"text-2xl font-bold text-white mb-2\">
             {requires2FA ? 'Two-Factor Authentication' : isRegister ? 'Create Account' : 'Welcome Back'}
           </h2>
-          <p className="text-gray-500">
+          <p className=\"text-gray-400\">
             {requires2FA 
-              ? 'Enter the 6-digit code from your authenticator app' 
+              ? 'Enter the 6-digit code from your authenticator app'
               : isRegister 
               ? 'Start trading with AI-powered insights' 
               : 'Sign in to access your dashboard'}
@@ -169,7 +177,7 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
                 type="text"
                 value={totpCode}
                 onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                className="w-full bg-[#1E1E24] border border-[#2A2A35] rounded px-4 py-3 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none transition text-center text-2xl tracking-widest font-mono"
+                className="w-full bg-[#0B0F1A] border border-[#1a2332] rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition text-center text-2xl tracking-widest font-mono"
                 placeholder="000000"
                 maxLength={6}
                 autoFocus
@@ -180,7 +188,7 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
             <button
               type="submit"
               disabled={loading || totpCode.length !== 6}
-              className="w-full py-4 rounded font-semibold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 transition-all shadow-lg shadow-emerald-500/25"
+              className="w-full py-4 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 disabled:opacity-50 transition-all"
             >
               {loading ? 'Verifying...' : 'Verify'}
             </button>
@@ -203,7 +211,7 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#1E1E24] border border-[#2A2A35] rounded px-4 py-3 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none transition"
+                  className="w-full bg-[#0B0F1A] border border-[#1a2332] rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
                   placeholder="John Doe"
                   required
                 />
@@ -216,7 +224,7 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#1E1E24] border border-[#2A2A35] rounded px-4 py-3 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none transition"
+                className="w-full bg-[#0B0F1A] border border-[#1a2332] rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
                 placeholder="you@example.com"
                 required
               />
@@ -228,12 +236,12 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#1E1E24] border border-[#2A2A35] rounded px-4 py-3 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none transition"
+                className="w-full bg-[#0B0F1A] border border-[#1a2332] rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none transition"
                 placeholder="••••••••"
                 required
               />
               {isRegister && (
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-500 mt-1">
                   Min 8 chars with uppercase, lowercase, and number
                 </p>
               )}
@@ -242,7 +250,7 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded font-semibold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 transition-all shadow-lg shadow-emerald-500/25"
+              className="w-full py-4 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 disabled:opacity-50 transition-all"
             >
               {loading ? 'Loading...' : (isRegister ? 'Create Account' : 'Sign In')}
             </button>
@@ -254,13 +262,13 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
             {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
             <button 
               onClick={() => setIsRegister(!isRegister)}
-              className="text-emerald-400 hover:text-emerald-300 font-medium transition"
+              className="text-blue-400 hover:text-blue-300 font-medium transition"
             >
               {isRegister ? 'Sign In' : 'Register'}
             </button>
           </p>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -273,25 +281,35 @@ function FeatureCard({ icon: Icon, title, description, gradient }: {
   gradient: string;
 }) {
   return (
-    <div className="bg-[#12121A] border border-[#1E1E24] rounded p-6 hover:border-[#2A2A35] transition-all group">
-      <div className={`w-14 h-14 rounded ${gradient} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
+    <motion.div 
+      whileHover={{ scale: 1.02, y: -4 }}
+      transition={{ duration: 0.2 }}
+      className="bg-[#0B0F1A] border border-[#1a2332] rounded-lg p-6 hover:border-blue-500/30 transition-all group"
+    >
+      <div className={`w-14 h-14 rounded-lg ${gradient} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
         <Icon className="w-7 h-7 text-white" />
       </div>
       <h3 className="text-xl font-semibold text-white mb-3">{title}</h3>
-      <p className="text-gray-500 leading-relaxed">{description}</p>
-    </div>
+      <p className="text-gray-400 leading-relaxed">{description}</p>
+    </motion.div>
   );
 }
 
 // Stat Card
 function StatCard({ value, label, suffix }: { value: string; label: string; suffix?: string }) {
   return (
-    <div className="text-center">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className="text-center"
+    >
       <p className="text-4xl md:text-5xl font-bold text-white mb-2">
-        {value}<span className="text-emerald-400">{suffix}</span>
+        {value}<span className="text-blue-400">{suffix}</span>
       </p>
-      <p className="text-gray-500">{label}</p>
-    </div>
+      <p className="text-gray-400">{label}</p>
+    </motion.div>
   );
 }
 
@@ -305,7 +323,7 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#08080C]">
+    <main className="min-h-screen bg-[#06080F]">
       {/* Auth Modal */}
       <AuthModal 
         isOpen={showAuth} 
@@ -315,18 +333,22 @@ export default function LandingPage() {
 
       {/* Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
       </div>
 
+      {/* Market Ticker */}
+      <MarketTicker className="fixed top-0 left-0 right-0 z-50" height={40} />
+
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-40 bg-[#08080C]/80 backdrop-blur-xl border-b border-[#1E1E24]">
+      <nav className="fixed top-10 left-0 right-0 z-40 bg-[#06080F]/90 backdrop-blur-xl border-b border-[#1a2332]">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
+              <LineChart className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-white">Odyssey</span>
+            <span className="font-bold text-xl text-white">FinX</span>
           </div>
           
           <div className="hidden md:flex items-center gap-8">
@@ -344,7 +366,7 @@ export default function LandingPage() {
             </button>
             <button 
               onClick={() => setShowAuth(true)}
-              className="px-5 py-2.5 rounded font-semibold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg shadow-emerald-500/25"
+              className="px-5 py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all"
             >
               Get Started
             </button>
@@ -353,62 +375,86 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-40 pb-24 px-6">
+      <section className="relative pt-52 pb-24 px-6">
         <div className="max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-5 py-2 mb-8">
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-            <span className="text-sm text-emerald-400 font-medium">AI Models Active — Trading 15 Assets</span>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 bg-blue-600/10 border border-blue-500/20 rounded-full px-5 py-2 mb-8"
+          >
+            <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+            <span className="text-sm text-blue-400 font-medium">Live Market Data — 15 Assets Tracked</span>
+          </motion.div>
           
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight text-white">
-            Trade Smarter with
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-5xl md:text-7xl font-bold mb-8 leading-tight text-white"
+          >
+            Master the Markets with
             <br />
-            <span className="bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">AI-Powered</span> Insights
-          </h1>
+            <span className="bg-gradient-to-r from-blue-400 via-indigo-500 to-blue-600 bg-clip-text text-transparent">AI-Driven</span> Intelligence
+          </motion.h1>
           
-          <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Let machine learning analyze the market for you. Our XGBoost models 
-            deliver 47.5% annual returns with institutional-grade risk management.
-          </p>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed"
+          >
+            Deploy institutional-grade XGBoost models that analyze market data in real-time. 
+            Achieve 47.5% returns with automated risk management and AI-powered insights.
+          </motion.p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
             <button 
               onClick={() => setShowAuth(true)}
-              className="w-full sm:w-auto px-8 py-4 rounded font-semibold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 text-lg"
+              className="w-full sm:w-auto px-8 py-4 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all flex items-center justify-center gap-2 text-lg"
             >
               Start Trading <ArrowRight className="w-5 h-5" />
             </button>
-            <button className="w-full sm:w-auto px-8 py-4 rounded font-semibold text-white bg-[#12121A] border border-[#1E1E24] hover:border-[#2A2A35] transition-all flex items-center justify-center gap-2 text-lg">
-              <BarChart3 className="w-5 h-5" />
+            <button className="w-full sm:w-auto px-8 py-4 rounded-lg font-semibold text-white bg-[#0B0F1A] border border-[#1a2332] hover:border-blue-500/50 transition-all flex items-center justify-center gap-2 text-lg">
+              <Activity className="w-5 h-5" />
               View Performance
             </button>
-          </div>
+          </motion.div>
           
           {/* Trust badges */}
-          <div className="mt-16 flex flex-wrap items-center justify-center gap-8 text-gray-500 text-sm">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mt-16 flex flex-wrap items-center justify-center gap-8 text-gray-400 text-sm"
+          >
             <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
+              <Shield className="w-4 h-4 text-blue-400" />
               <span>Bank-level Security</span>
             </div>
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
+              <Users className="w-4 h-4 text-blue-400" />
               <span>5,000+ Active Traders</span>
             </div>
             <div className="flex items-center gap-2">
-              <Globe className="w-4 h-4" />
-              <span>Alpaca Markets Integration</span>
+              <Globe className="w-4 h-4 text-blue-400" />
+              <span>Real-time Market Data</span>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section id="performance" className="py-20 px-6 border-y border-[#1E1E24]">
+      <section id="performance" className="py-20 px-6 border-y border-[#1a2332]">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             <StatCard value="47.5" suffix="%" label="Annual Return" />
             <StatCard value="1.93" suffix="x" label="Sharpe Ratio" />
-            <StatCard value="75.2" suffix="%" label="Win Rate" />
+            <StatCard value="77" suffix="%" label="Model Accuracy" />
             <StatCard value="15" suffix="+" label="Assets Tracked" />
           </div>
         </div>
@@ -418,55 +464,72 @@ export default function LandingPage() {
       <section id="features" className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-[#12121A] border border-[#1E1E24] rounded-full px-4 py-2 mb-6">
-              <Star className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm text-gray-400">Powerful Features</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-              Everything You Need to Trade
-            </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-              Professional-grade tools powered by machine learning, designed for both 
-              beginners and experienced traders.
-            </p>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2 bg-[#0B0F1A] border border-[#1a2332] rounded-full px-4 py-2 mb-6"
+            >
+              <Star className="w-4 h-4 text-blue-400" />
+              <span className="text-sm text-gray-400">Institutional-Grade Tools</span>
+            </motion.div>
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-4xl md:text-5xl font-bold mb-6 text-white"
+            >
+              Professional Trading Platform
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="text-gray-400 max-w-2xl mx-auto text-lg"
+            >
+              Advanced machine learning algorithms meet real-time market data. 
+              Built for traders who demand precision and performance.
+            </motion.p>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <FeatureCard 
               icon={Brain}
-              title="AI Recommendations"
-              description="XGBoost models analyze 15 assets daily, providing buy/sell signals with predicted returns."
-              gradient="bg-gradient-to-br from-violet-500 to-purple-600"
+              title="ML Predictions"
+              description="XGBoost models with 77% accuracy analyze 15 assets, delivering actionable buy/sell signals with confidence scores."
+              gradient="bg-gradient-to-br from-blue-600 to-indigo-700"
             />
             <FeatureCard 
               icon={Bot}
-              title="Automated Trading"
-              description="Set it and forget it. Our bot executes trades automatically based on AI signals."
-              gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
+              title="Algorithmic Execution"
+              description="Automated trading bot executes strategies 24/7 with real-time risk monitoring and position management."
+              gradient="bg-gradient-to-br from-indigo-600 to-purple-700"
             />
             <FeatureCard 
-              icon={BarChart3}
-              title="Live Charts"
-              description="Real-time price charts with technical indicators for all tracked assets."
-              gradient="bg-gradient-to-br from-gray-500 to-slate-600"
+              icon={Activity}
+              title="Real-Time Analytics"
+              description="Live market data, interactive charts, and technical indicators powered by Yahoo Finance integration."
+              gradient="bg-gradient-to-br from-blue-500 to-cyan-600"
             />
             <FeatureCard 
               icon={Shield}
-              title="Risk Management"
-              description="Built-in position limits, drawdown protection, and portfolio diversification."
-              gradient="bg-gradient-to-br from-orange-500 to-amber-600"
+              title="Smart Risk Controls"
+              description="Dynamic position sizing, stop-loss automation, and portfolio rebalancing to protect your capital."
+              gradient="bg-gradient-to-br from-slate-600 to-gray-700"
             />
             <FeatureCard 
-              icon={TrendingUp}
-              title="Portfolio Tracking"
-              description="Monitor your holdings, P&L, and trade history in one dashboard."
-              gradient="bg-gradient-to-br from-pink-500 to-rose-600"
+              icon={BarChart3}
+              title="Performance Dashboard"
+              description="Track portfolio metrics, sharpe ratio, drawdown, and compare against benchmark indices like SPY."
+              gradient="bg-gradient-to-br from-blue-600 to-indigo-600"
             />
             <FeatureCard 
               icon={Lock}
-              title="Paper Trading"
-              description="Practice with $100k virtual money before going live. No risk, real learning."
-              gradient="bg-gradient-to-br from-gray-500 to-slate-600"
+              title="Paper Trading Mode"
+              description="Test strategies with $100k virtual capital. Full market simulation with zero risk."
+              gradient="bg-gradient-to-br from-indigo-700 to-blue-800"
             />
           </div>
         </div>
@@ -475,47 +538,53 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section id="pricing" className="py-24 px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-[#12121A] to-[#0B0B0F] border border-[#1E1E24] rounded p-12 md:p-16 text-center relative overflow-hidden">
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-br from-[#0B0F1A] to-[#06080F] border border-[#1a2332] rounded-lg p-12 md:p-16 text-center relative overflow-hidden"
+          >
             {/* Glow effects */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-32 bg-emerald-500/20 rounded-full blur-3xl" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-32 bg-blue-600/20 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl" />
             
             <div className="relative">
-              <div className="w-16 h-16 rounded bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mx-auto mb-8">
-                <Zap className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center mx-auto mb-8">
+                <LineChart className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">Ready to Start?</h2>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">Start Trading Today</h2>
               <p className="text-gray-400 mb-10 max-w-lg mx-auto text-lg">
-                Create a free account and get $100,000 in virtual funds to practice. 
-                No credit card required.
+                Launch your account with $100,000 virtual capital. 
+                No credit card. No risk. Just pure market intelligence.
               </p>
               <button 
                 onClick={() => setShowAuth(true)}
-                className="px-10 py-4 rounded font-semibold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg shadow-emerald-500/25 text-lg inline-flex items-center gap-2"
+                className="px-10 py-4 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all text-lg inline-flex items-center gap-2"
               >
                 Create Free Account <ChevronRight className="w-5 h-5" />
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t border-[#1E1E24]">
+      <footer className="py-12 px-6 border-t border-[#1a2332]">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
+                <LineChart className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-lg text-white">Odyssey</span>
+              <span className="font-bold text-lg text-white">FinX</span>
             </div>
-            <div className="flex items-center gap-8 text-gray-500">
+            <div className="flex items-center gap-8 text-gray-400">
               <a href="#" className="hover:text-white transition">Terms</a>
               <a href="#" className="hover:text-white transition">Privacy</a>
-              <a href="#" className="hover:text-white transition">Contact</a>
+              <a href="#" className="hover:text-white transition">Documentation</a>
             </div>
-            <p className="text-gray-600 text-sm">
-              © 2024 Odyssey. For educational purposes only.
+            <p className="text-gray-500 text-sm">
+              © 2025 FinX. Markets are unpredictable. Trade responsibly.
             </p>
           </div>
         </div>

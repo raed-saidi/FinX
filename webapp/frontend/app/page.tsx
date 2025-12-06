@@ -313,7 +313,7 @@ export default function LandingPage() {
             <div className="w-10 h-10 rounded bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
               <Zap className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-white">SmartInvest</span>
+            <span className="font-bold text-xl text-white">Odyssey</span>
           </div>
           
           <div className="hidden md:flex items-center gap-8">
@@ -494,7 +494,7 @@ export default function LandingPage() {
               <div className="w-10 h-10 rounded bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
                 <Zap className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-lg text-white">SmartInvest AI</span>
+              <span className="font-bold text-lg text-white">Odyssey</span>
             </div>
             <div className="flex items-center gap-8 text-gray-500">
               <a href="#" className="hover:text-white transition">Terms</a>
@@ -502,7 +502,7 @@ export default function LandingPage() {
               <a href="#" className="hover:text-white transition">Contact</a>
             </div>
             <p className="text-gray-600 text-sm">
-              © 2024 SmartInvest. For educational purposes only.
+              © 2024 Odyssey. For educational purposes only.
             </p>
           </div>
         </div>

@@ -41,8 +41,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         <div className="fixed top-14 right-0 z-30 transition-all duration-300" style={{ left: mainMargin }}>
           <MarketTicker height={36} speed={40} />
         </div>
-        {/* pt-[92px] = navbar (56px) + ticker (36px) */}
-        <main className="p-4 md:p-6 pt-[92px] min-h-screen">
+        {/* pt-[100px] = navbar (56px) + ticker (36px) + spacing (8px) */}
+        <main className="p-4 md:p-6 pt-[100px] min-h-screen">
           <ErrorBoundary>
             {children}
           </ErrorBoundary>

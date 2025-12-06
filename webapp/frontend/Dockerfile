@@ -1,13 +1,13 @@
 # Frontend Dockerfile
-# Dependencies stage
-FROM node:20.18.1-alpine3.20 AS deps
+# Use Node 20 LTS (stable, compatible with Next.js 16)
+FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --only=production --ignore-scripts
 
 # Builder stage
-FROM node:20.18.1-alpine3.20 AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -29,10 +29,11 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Create public directory if it doesn't exist
+# Create public directory if it doesn't exist
 RUN mkdir -p public
 
 # Production image
-FROM node:20.18.1-alpine3.20 AS runner
+FROM node:20-alpine AS runner
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \

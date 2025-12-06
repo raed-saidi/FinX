@@ -316,11 +316,19 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   fetchRecommendations: async () => {
     set((state) => ({ loadingStates: { ...state.loadingStates, recommendations: true } }));
     try {
+      console.log('Fetching recommendations from:', `${API_URL}/api/recommendations`);
       const res = await fetch(`${API_URL}/api/recommendations`);
+      
+      console.log('Recommendations response status:', res.status);
       
       if (res.ok) {
         const data = await res.json();
+        console.log('Recommendations data received:', data);
+        console.log('Number of recommendations:', data?.length || 0);
         set({ recommendations: data || [] });
+      } else {
+        const errorText = await res.text();
+        console.error('Recommendations fetch failed:', res.status, errorText);
       }
     } catch (error) {
       console.error('Failed to fetch recommendations:', error);
@@ -472,6 +480,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     get().addChatMessage(typingMessage);
     
     try {
+      console.log('Sending chat message to:', `${API_URL}/api/chat`);
       const res = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: { 
@@ -480,6 +489,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         body: JSON.stringify({ message })
       });
       
+      console.log('Chat response status:', res.status);
+      
       // Remove typing indicator
       set((state) => ({
         chatMessages: state.chatMessages.filter(m => m.id !== 'typing')
@@ -487,6 +498,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       
       if (res.ok) {
         const data = await res.json();
+        console.log('Chat response received:', data);
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
@@ -495,6 +507,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         };
         get().addChatMessage(assistantMessage);
       } else {
+        const errorText = await res.text();
+        console.error('Chat request failed:', res.status, errorText);
         throw new Error('Failed to get response');
       }
     } catch (error) {

@@ -327,8 +327,7 @@ async def health_check():
         "timestamp": datetime.now().isoformat(),
         "dependencies": {
             "groq": groq_client is not None,
-            "alpaca": alpaca_trading_available,
-            "qdrant": getattr(qdrant_manager, 'collection_name', None) if qdrant_manager else None
+            "alpaca": alpaca_trading_available
         }
     }
 

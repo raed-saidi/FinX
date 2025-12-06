@@ -116,10 +116,14 @@ export default function MarketTicker({
     const fetchPrices = async () => {
       try {
         const symbols = tickerData.filter(t => t.type === 'stock').map(t => t.symbol).join(',');
+        console.log('Fetching ticker prices from:', `${API_URL}/api/prices?symbols=${symbols}`);
         const res = await fetch(`${API_URL}/api/prices?symbols=${symbols}`);
+        
+        console.log('Ticker response status:', res.status);
         
         if (res.ok) {
           const priceData = await res.json();
+          console.log('Ticker price data received:', Object.keys(priceData).length, 'symbols');
           
           // Store previous prices for animation
           const prevPrices: Record<string, number> = {};
@@ -142,9 +146,13 @@ export default function MarketTicker({
             return item;
           }));
           setIsLoading(false);
+        } else {
+          const errorText = await res.text();
+          console.error('Ticker prices fetch failed:', res.status, errorText);
+          setIsLoading(false);
         }
       } catch (error) {
-        console.debug('Ticker price fetch failed:', error);
+        console.error('Ticker price fetch error:', error);
         setIsLoading(false);
       }
     };

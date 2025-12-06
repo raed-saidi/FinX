@@ -64,8 +64,8 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="h-20 flex items-center justify-between px-6 border-b border-border">
         <Link href="/dashboard" className="flex items-center gap-3" onClick={handleNavClick}>
-          <div className="w-10 h-10 bg-neutral-800 dark:bg-neutral-200 flex items-center justify-center flex-shrink-0">
-            <Zap className="w-5 h-5 text-white dark:text-neutral-900" />
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center flex-shrink-0">
+            <Zap className="w-5 h-5 text-white" />
           </div>
           <AnimatePresence>
             {(!sidebarCollapsed || isMobile) && (

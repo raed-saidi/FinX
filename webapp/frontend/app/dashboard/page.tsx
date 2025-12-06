@@ -32,6 +32,9 @@ import { useAppSettings } from '@/hooks/useAppSettings';
 import MarketTicker from '@/components/ui/MarketTicker';
 import MiniSparkline from '@/components/ui/MiniSparkline';
 
+// All 15 available stocks in the system
+const AVAILABLE_STOCKS = ['AAPL', 'NVDA', 'TSLA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'AMD', 'SPY', 'QQQ', 'INTC', 'EFA', 'IEF', 'HYG', 'BIL'];
+
 // Stock colors mapping
 const stockColors: Record<string, { bg: string; color: string }> = {
   AAPL: { bg: 'from-gray-500 to-gray-600', color: 'text-gray-400' },
@@ -54,6 +57,7 @@ export default function DashboardPage() {
   const [investMode, setInvestMode] = useState<'single' | 'batch'>('batch');
   const [selectedRecommendation, setSelectedRecommendation] = useState<Recommendation | null>(null);
   const [stockGridPage, setStockGridPage] = useState(0); // For 2x2 grid pagination
+  const [allStocks, setAllStocks] = useState<any[]>([]);
   
   const router = useRouter();
   
@@ -76,15 +80,58 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    console.log('Dashboard mounted, fetching data...');
     setMounted(true);
     initializeFromStorage();
-    fetchPortfolio();
-    fetchBotStatus();
-    fetchRecommendations();
-    fetchBacktest();
+    
+    // Fetch all data including prices for all stocks
+    const loadData = async () => {
+      console.log('Starting data fetch...');
+      await fetchPortfolio();
+      await fetchBotStatus();
+      await fetchRecommendations();
+      await fetchBacktest();
+      
+      // Fetch prices for all 15 stocks
+      try {
+        const response = await fetch(`http://localhost:8000/api/prices?symbols=${AVAILABLE_STOCKS.join(',')}`);
+        const pricesData = await response.json();
+        // Convert object to array: { AAPL: {price: 278.78, ...}, ... } -> [{symbol: 'AAPL', price: 278.78, ...}, ...]
+        if (pricesData && typeof pricesData === 'object' && !Array.isArray(pricesData)) {
+          const stocksArray = Object.entries(pricesData).map(([symbol, data]: [string, any]) => ({
+            symbol,
+            price: data.current_price,
+            change_pct: data.change_pct
+          }));
+          setAllStocks(stocksArray);
+          console.log('All stocks data loaded:', stocksArray.length);
+        } else if (Array.isArray(pricesData)) {
+          setAllStocks(pricesData);
+          console.log('All stocks data loaded:', pricesData.length);
+        } else {
+          console.error('API returned unexpected format:', pricesData);
+          setAllStocks([]);
+        }
+      } catch (error) {
+        console.error('Error fetching all stocks:', error);
+        setAllStocks([]);
+      }
+      
+      console.log('Data fetch complete');
+    };
+    
+    loadData();
     setLastUpdate(new Date());
     // No auto-refresh - use manual refresh or WebSocket for updates
-  }, []);
+  }, [fetchPortfolio, fetchBotStatus, fetchRecommendations, fetchBacktest, initializeFromStorage]);
+
+  // Debug log for recommendations
+  useEffect(() => {
+    console.log('Dashboard recommendations updated:', recommendations.length, recommendations);
+    if (recommendations.length > 0) {
+      console.log('First recommendation:', recommendations[0]);
+    }
+  }, [recommendations]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -145,7 +192,7 @@ export default function DashboardPage() {
             />
             <button
               onClick={handleBatchInvest}
-              className="flex items-center gap-2 px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded transition"
+              className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-semibold rounded-lg transition-all"
             >
               <DollarSign className="w-5 h-5" />
               Smart Invest
@@ -268,37 +315,36 @@ export default function DashboardPage() {
             )}
           </motion.div>
 
-          {/* Top 4 AI Recommendations - 2x2 Grid with Mini Charts */}
-          <motion.div 
-            variants={itemVariants}
-            className="col-span-12 lg:col-span-7"
-          >
+          {/* Available Stocks - 2x2 Grid with Mini Charts */}
+          <div className="col-span-12 lg:col-span-7">
             {/* Header with Navigation */}
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-muted-foreground">Top AI Picks</h3>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {stockGridPage + 1} / {Math.ceil(recommendations.length / 4)}
-                </span>
-                <button
-                  onClick={() => setStockGridPage(prev => Math.max(0, prev - 1))}
-                  disabled={stockGridPage === 0}
-                  className="w-7 h-7 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-gray-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setStockGridPage(prev => Math.min(Math.ceil(recommendations.length / 4) - 1, prev + 1))}
-                  disabled={stockGridPage >= Math.ceil(recommendations.length / 4) - 1}
-                  className="w-7 h-7 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-gray-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+              <h3 className="text-sm font-medium text-gray-400">Available Stocks</h3>
+              {allStocks.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {stockGridPage + 1} / {Math.ceil(allStocks.length / 4)}
+                  </span>
+                  <button
+                    onClick={() => setStockGridPage(prev => Math.max(0, prev - 1))}
+                    disabled={stockGridPage === 0}
+                    className="w-7 h-7 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-blue-500/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setStockGridPage(prev => Math.min(Math.ceil(allStocks.length / 4) - 1, prev + 1))}
+                    disabled={stockGridPage >= Math.ceil(allStocks.length / 4) - 1}
+                    className="w-7 h-7 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-blue-500/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
             
             <div className="grid grid-cols-2 gap-4">
-              {loadingStates.recommendations ? (
+              {allStocks.length === 0 ? (
                 <>
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="bg-card border border-border rounded-lg p-4">
@@ -308,7 +354,6 @@ export default function DashboardPage() {
                           <Skeleton width="50%" height={14} />
                           <Skeleton width="30%" height={12} />
                         </div>
-                        <Skeleton width={60} height={20} className="rounded-full" />
                       </div>
                       <Skeleton height={50} className="mb-3" />
                       <div className="flex justify-between">
@@ -319,42 +364,39 @@ export default function DashboardPage() {
                   ))}
                 </>
               ) : (
-                recommendations.slice(stockGridPage * 4, stockGridPage * 4 + 4).map((rec, index) => {
-                  const isPositive = rec.signal > 0;
-                  const iconStyle = stockColors[rec.asset] || { bg: 'from-gray-500 to-gray-600', color: 'text-gray-400' };
+                allStocks.slice(stockGridPage * 4, stockGridPage * 4 + 4).map((stock, index) => {
+                  const isPositive = (stock.change_pct || 0) > 0;
+                  const iconStyle = stockColors[stock.symbol] || { bg: 'from-gray-500 to-gray-600', color: 'text-gray-400' };
                   
                   return (
-                    <motion.div
-                      key={rec.asset}
-                      variants={itemVariants}
-                      onClick={() => router.push(`/dashboard/stock/${rec.asset}`)}
-                      className="bg-card border border-border rounded-lg p-4 hover:border-gray-500/50 transition-all cursor-pointer group"
+                    <div
+                      key={stock.symbol}
+                      onClick={() => router.push(`/dashboard/stock/${stock.symbol}`)}
+                      className="bg-card border border-border rounded-lg p-4 hover:border-blue-500/50 transition-all cursor-pointer group"
                     >
                       {/* Header */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <StockLogo symbol={rec.asset} size="sm" />
+                          <StockLogo symbol={stock.symbol} size="sm" />
                           <div>
                             <p className="text-foreground font-semibold flex items-center gap-1 text-sm">
-                              {rec.asset}
+                              {stock.symbol}
                               <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </p>
-                            <p className="text-muted-foreground text-xs">${rec.current_price?.toFixed(2)}</p>
+                            <p className="text-muted-foreground text-xs">${stock.price?.toFixed(2)}</p>
                           </div>
                         </div>
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                          rec.direction === 'LONG' ? 'bg-emerald-500/20 text-emerald-400' : 
-                          rec.direction === 'SHORT' ? 'bg-red-500/20 text-red-400' : 
-                          'bg-gray-500/20 text-gray-400'
+                          isPositive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
                         }`}>
-                          {rec.direction}
+                          {isPositive ? '+' : ''}{stock.change_pct?.toFixed(2)}%
                         </span>
                       </div>
                       
                       {/* Mini Chart */}
                       <div className="mb-3 flex justify-center">
                         <MiniSparkline 
-                          symbol={rec.asset} 
+                          symbol={stock.symbol} 
                           width={140} 
                           height={50}
                           color={isPositive ? '#10b981' : '#ef4444'}
@@ -364,22 +406,24 @@ export default function DashboardPage() {
                       {/* Stats */}
                       <div className="flex items-center justify-between text-xs">
                         <div>
-                          <p className="text-muted-foreground">AI Signal</p>
-                          <p className={`font-semibold ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
-                            {isPositive ? '+' : ''}{(rec.signal * 100).toFixed(2)}%
+                          <p className="text-muted-foreground">Price</p>
+                          <p className="text-foreground font-semibold">
+                            ${stock.price?.toFixed(2)}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-muted-foreground">Allocation</p>
-                          <p className="text-foreground font-medium">{rec.weight_pct}%</p>
+                          <p className="text-muted-foreground">Change</p>
+                          <p className={`font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {isPositive ? '+' : ''}{stock.change_pct?.toFixed(2)}%
+                          </p>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   );
                 })
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Quick Invest Section - Below Top Row */}
@@ -414,7 +458,7 @@ export default function DashboardPage() {
               ))}
               <button
                 onClick={handleBatchInvest}
-                className="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
               >
                 <DollarSign className="w-4 h-4" />
                 Custom Amount
@@ -468,7 +512,7 @@ export default function DashboardPage() {
               <p className="text-muted-foreground text-xs mt-1">Based on XGBoost Walk-Forward Model</p>
             </div>
 
-            <div className="p-4 space-y-2 max-h-[440px] overflow-y-auto">
+            <div className="p-4 pb-6 space-y-2 max-h-[440px] overflow-y-auto">
               {recommendations.map((rec, index) => {
                 const isPositive = rec.signal > 0;
                 return (

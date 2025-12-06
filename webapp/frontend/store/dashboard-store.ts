@@ -13,6 +13,7 @@ import {
 } from '@/lib/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+console.log('Dashboard Store API_URL:', API_URL, 'from env:', process.env.NEXT_PUBLIC_API_URL);
 
 interface DashboardState {
   // User

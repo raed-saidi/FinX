@@ -15,6 +15,11 @@ export function useRealtimeUpdates() {
   const { fetchPortfolio, fetchBotStatus, fetchRecommendations } = useDashboardStore();
   const { notificationsEnabled } = useAppSettings();
 
+  // Temporarily disable WebSocket to fix connection issues
+  const isConnected = false;
+  const lastMessage = null;
+  
+  /*
   const { isConnected, lastMessage } = useWebSocket({
     onTrade: (trade) => {
       console.log('📈 Real-time trade:', trade);
@@ -51,6 +56,7 @@ export function useRealtimeUpdates() {
       }
     },
   });
+  */
 
   return { isConnected, lastMessage };
 }

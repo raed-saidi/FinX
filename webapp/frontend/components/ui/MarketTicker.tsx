@@ -32,6 +32,7 @@ const DEFAULT_DATA: TickerItem[] = [
 ];
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+console.log('MarketTicker API_URL:', API_URL);
 
 // Memoized ticker item to prevent unnecessary re-renders
 const TickerItemDisplay = memo(function TickerItemDisplay({ 
@@ -100,7 +101,7 @@ const TickerItemDisplay = memo(function TickerItemDisplay({
 
 export default function MarketTicker({ 
   data: initialData, 
-  speed = 50, 
+  speed = 80, // Increased from 50 for more visible movement
   height = 50,
   className = ''
 }: MarketTickerProps) {
@@ -109,7 +110,7 @@ export default function MarketTicker({
   const [isPaused, setIsPaused] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [contentWidth, setContentWidth] = useState(2000); // Start with default width so content is visible
+  const [contentWidth, setContentWidth] = useState(3000); // Start with larger default width
 
   // Fetch real prices from API
   useEffect(() => {
@@ -168,11 +169,17 @@ export default function MarketTicker({
 
   // Calculate content width for seamless loop
   useEffect(() => {
-    if (containerRef.current) {
-      const firstChild = containerRef.current.querySelector('.ticker-content');
-      if (firstChild) {
-        setContentWidth(firstChild.scrollWidth);
-      }
+    if (containerRef.current && !isLoading) {
+      // Small delay to ensure DOM is rendered
+      const timer = setTimeout(() => {
+        const firstChild = containerRef.current?.querySelector('.ticker-content');
+        if (firstChild) {
+          const width = firstChild.scrollWidth / 2; // Divide by 2 because we duplicate content
+          setContentWidth(width || 2000);
+          console.log('Ticker content width calculated:', width);
+        }
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [tickerData, isLoading]);
 
@@ -199,21 +206,20 @@ export default function MarketTicker({
   return (
     <>
       {/* CSS Keyframes for smooth ticker animation */}
-      <style jsx>{`
+      <style jsx global>{`
         @keyframes ticker-scroll {
           0% {
             transform: translateX(0);
           }
           100% {
-            transform: translateX(-50%);
+            transform: translateX(-33.333%);
           }
         }
         .ticker-animate {
-          animation: ticker-scroll ${duration || 40}s linear infinite;
+          animation: ticker-scroll 30s linear infinite !important;
         }
-        .ticker-animate:hover,
-        .ticker-paused {
-          animation-play-state: paused;
+        .ticker-animate:hover {
+          animation-play-state: paused !important;
         }
       `}</style>
       
@@ -233,13 +239,14 @@ export default function MarketTicker({
           className="flex items-center h-full"
         >
           <div
-            className={`ticker-content flex items-center ticker-animate ${isPaused ? 'ticker-paused' : ''}`}
+            className={`ticker-content flex items-center ${isPaused ? 'ticker-paused' : 'ticker-animate'}`}
             style={{
               willChange: 'transform',
+              display: 'flex',
             }}
           >
-            {/* Duplicate content for seamless loop */}
-            {[...displayData, ...displayData].map((item, index) => (
+            {/* Duplicate content 3x for seamless loop */}
+            {[...displayData, ...displayData, ...displayData].map((item, index) => (
               <TickerItemDisplay 
                 key={`${item.symbol}-${index}`} 
                 item={item} 

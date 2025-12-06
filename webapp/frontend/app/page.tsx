@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
@@ -322,6 +322,31 @@ export default function LandingPage() {
     router.push('/dashboard');
   };
 
+  // Hide navbar on scroll down, show on scroll up
+  useEffect(() => {
+    let lastScrollY = 0;
+    const navbar = document.getElementById('landing-navbar');
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (!navbar) return;
+      
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        // Scrolling down & past threshold - hide navbar
+        navbar.style.transform = 'translateY(-100%)';
+      } else {
+        // Scrolling up - show navbar
+        navbar.style.transform = 'translateY(0)';
+      }
+      
+      lastScrollY = currentScrollY;
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#06080F]">
       {/* Auth Modal */}
@@ -338,11 +363,8 @@ export default function LandingPage() {
         <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
       </div>
 
-      {/* Market Ticker */}
-      <MarketTicker className="fixed top-0 left-0 right-0 z-50" height={40} />
-
       {/* Navbar */}
-      <nav className="fixed top-10 left-0 right-0 z-40 bg-[#06080F]/90 backdrop-blur-xl border-b border-[#1a2332]">
+      <nav id="landing-navbar" className="fixed top-0 left-0 right-0 z-50 bg-[#06080F]/90 backdrop-blur-xl border-b border-[#1a2332] transition-transform duration-300">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
@@ -374,8 +396,12 @@ export default function LandingPage() {
         </div>
       </nav>
 
+      {/* Market Ticker - Below Navbar */}
+      <MarketTicker className="fixed top-[73px] left-0 right-0 z-40" height={36} />
+
+
       {/* Hero Section */}
-      <section className="relative pt-52 pb-24 px-6">
+      <section className="relative pt-40 pb-24 px-6">
         <div className="max-w-5xl mx-auto text-center">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -454,7 +480,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             <StatCard value="47.5" suffix="%" label="Annual Return" />
             <StatCard value="1.93" suffix="x" label="Sharpe Ratio" />
-            <StatCard value="77" suffix="%" label="Model Accuracy" />
+            <StatCard value="75.2" suffix="%" label="Win Rate" />
             <StatCard value="15" suffix="+" label="Assets Tracked" />
           </div>
         </div>
@@ -498,7 +524,7 @@ export default function LandingPage() {
             <FeatureCard 
               icon={Brain}
               title="ML Predictions"
-              description="XGBoost models with 77% accuracy analyze 15 assets, delivering actionable buy/sell signals with confidence scores."
+              description="XGBoost models with 75.2% win rate analyze 15 assets, delivering actionable buy/sell signals with confidence scores."
               gradient="bg-gradient-to-br from-blue-600 to-indigo-700"
             />
             <FeatureCard 

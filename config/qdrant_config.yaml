@@ -12,13 +12,14 @@ qdrant:
     port: 6333
     grpc_port: 6334
     container_name: "qdrant-smart-investment"
-    image: "qdrant/qdrant:latest"
+    image: "qdrant/qdrant:v1.12.5"  # Pinned to specific version for reproducibility
     volume_path: "./data/qdrant_storage"
   
   # Cloud deployment settings (Qdrant Cloud)
+  # Set QDRANT_CLOUD_URL and QDRANT_API_KEY environment variables
   cloud:
-    url: "https://994efbd8-6b4c-4e42-9ea9-3385f9169e64.eu-west-2-0.aws.cloud.qdrant.io:6333"
-    api_key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.dFUZ_OB_3rqo4874o3pSgdzuFZvwqh0-csOLyB_7Vbs"
+    url: "${QDRANT_CLOUD_URL}"  # Read from environment
+    api_key: "${QDRANT_API_KEY}"  # Read from environment
     timeout: 30
   
   # Remote deployment settings (self-hosted)

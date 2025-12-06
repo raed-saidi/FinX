@@ -1,14 +1,32 @@
 # Backend Dockerfile
-FROM python:3.10-slim
+# Build stage
+FROM python:3.10.15-slim-bookworm AS builder
+
+WORKDIR /build
+
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir --upgrade pip && \
+    pip install --user --no-cache-dir -r requirements.txt
+
+# Runtime stage
+FROM python:3.10.15-slim-bookworm
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser -u 1001 appuser
+
+# Copy Python packages from builder
+COPY --from=builder /root/.local /home/appuser/.local
+
+# Set PATH to include user-installed packages
+ENV PATH=/home/appuser/.local/bin:$PATH
 
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Copy application code
-COPY . .
+COPY --chown=appuser:appuser . .
+
+# Switch to non-root user
+USER appuser
 
 # Expose port
 EXPOSE 8080

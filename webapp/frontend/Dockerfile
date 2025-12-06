@@ -1,5 +1,13 @@
 # Frontend Dockerfile
-FROM node:20-alpine AS builder
+# Dependencies stage
+FROM node:20.18.1-alpine3.20 AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --only=production --ignore-scripts
+
+# Builder stage
+FROM node:20.18.1-alpine3.20 AS builder
 
 WORKDIR /app
 
@@ -15,21 +23,33 @@ COPY . .
 # Build argument for API URL
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build the application
 RUN npm run build
 
 # Production image
-FROM node:20-alpine AS runner
+FROM node:20.18.1-alpine3.20 AS runner
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
 
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Copy built files
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+
+# Set ownership
+RUN chown -R nextjs:nodejs /app
+
+# Switch to non-root user
+USER nextjs
 
 EXPOSE 8080
 

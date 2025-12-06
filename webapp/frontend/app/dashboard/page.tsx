@@ -58,6 +58,7 @@ export default function DashboardPage() {
   const [selectedRecommendation, setSelectedRecommendation] = useState<Recommendation | null>(null);
   const [stockGridPage, setStockGridPage] = useState(0); // For 2x2 grid pagination
   const [allStocks, setAllStocks] = useState<any[]>([]);
+  const [stocksLoading, setStocksLoading] = useState(true);
   
   const router = useRouter();
   
@@ -94,8 +95,21 @@ export default function DashboardPage() {
       
       // Fetch prices for all 15 stocks
       try {
-        const response = await fetch(`http://localhost:8000/api/prices?symbols=${AVAILABLE_STOCKS.join(',')}`);
+        setStocksLoading(true);
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        console.log('Fetching stock prices from:', `${API_URL}/api/prices`);
+        const response = await fetch(`${API_URL}/api/prices?symbols=${AVAILABLE_STOCKS.join(',')}`);
+        
+        if (!response.ok) {
+          console.error('Failed to fetch stock prices:', response.status, response.statusText);
+          setAllStocks([]);
+          setStocksLoading(false);
+          return;
+        }
+        
         const pricesData = await response.json();
+        console.log('Raw prices data received:', pricesData);
+        
         // Convert object to array: { AAPL: {price: 278.78, ...}, ... } -> [{symbol: 'AAPL', price: 278.78, ...}, ...]
         if (pricesData && typeof pricesData === 'object' && !Array.isArray(pricesData)) {
           const stocksArray = Object.entries(pricesData).map(([symbol, data]: [string, any]) => ({
@@ -104,7 +118,7 @@ export default function DashboardPage() {
             change_pct: data.change_pct
           }));
           setAllStocks(stocksArray);
-          console.log('All stocks data loaded:', stocksArray.length);
+          console.log('All stocks data loaded:', stocksArray.length, stocksArray);
         } else if (Array.isArray(pricesData)) {
           setAllStocks(pricesData);
           console.log('All stocks data loaded:', pricesData.length);
@@ -115,6 +129,8 @@ export default function DashboardPage() {
       } catch (error) {
         console.error('Error fetching all stocks:', error);
         setAllStocks([]);
+      } finally {
+        setStocksLoading(false);
       }
       
       console.log('Data fetch complete');
@@ -135,12 +151,36 @@ export default function DashboardPage() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    setStocksLoading(true);
+    
+    // Fetch all dashboard data
     await Promise.all([
       fetchPortfolio(),
       fetchBotStatus(),
       fetchRecommendations(),
       fetchBacktest()
     ]);
+    
+    // Refresh stock prices
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_URL}/api/prices?symbols=${AVAILABLE_STOCKS.join(',')}`);
+      if (response.ok) {
+        const pricesData = await response.json();
+        if (pricesData && typeof pricesData === 'object' && !Array.isArray(pricesData)) {
+          const stocksArray = Object.entries(pricesData).map(([symbol, data]: [string, any]) => ({
+            symbol,
+            price: data.current_price,
+            change_pct: data.change_pct
+          }));
+          setAllStocks(stocksArray);
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing stock prices:', error);
+    }
+    
+    setStocksLoading(false);
     setLastUpdate(new Date());
     setIsRefreshing(false);
   };
@@ -344,7 +384,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="grid grid-cols-2 gap-4">
-              {allStocks.length === 0 ? (
+              {stocksLoading || allStocks.length === 0 ? (
                 <>
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="bg-card border border-border rounded-lg p-4">

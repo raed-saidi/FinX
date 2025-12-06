@@ -67,7 +67,7 @@ jobs:
             --region $REGION \
             --allow-unauthenticated \
             --service-account github-deployer@$PROJECT_ID.iam.gserviceaccount.com \
-            --set-secrets "GROQ_API_KEY=groq_api_key:latest,ALPACA_API_KEY=alpaca_api_key:latest,ALPACA_SECRET_KEY=alpaca_secret_key:latest,FRED_API_KEY=fred_api_key:latest,JWT_SECRET=jwt_secret:latest,PASSWORD_SALT=password_salt:latest" \
+            --update-secrets "GROQ_API_KEY=groq_api_key:latest,ALPACA_API_KEY=alpaca_api_key:latest,ALPACA_SECRET_KEY=alpaca_secret_key:latest,FRED_API_KEY=fred_api_key:latest,JWT_SECRET=jwt_secret:latest,PASSWORD_SALT=password_salt:latest" \
             --memory 1Gi \
             --cpu 1 \
             --min-instances 0 \

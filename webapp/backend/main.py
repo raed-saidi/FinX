@@ -29,9 +29,15 @@ load_dotenv()
 # Groq Client
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 groq_client = None
-if GROQ_API_KEY:
-    from groq import Groq
-    groq_client = Groq(api_key=GROQ_API_KEY)
+if GROQ_API_KEY and len(GROQ_API_KEY) > 10:  # Valid API key check
+    try:
+        from groq import Groq
+        groq_client = Groq(api_key=GROQ_API_KEY)
+        print("✓ Groq client initialized")
+    except Exception as e:
+        print(f"⚠ Groq client initialization failed: {e}")
+else:
+    print("⚠ GROQ_API_KEY not configured")
 
 # Alpaca Paper Trading Configuration
 ALPACA_API_KEY = os.getenv("ALPACA_API_KEY", "")
@@ -41,17 +47,20 @@ ALPACA_BASE_URL = os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets
 # Initialize Alpaca client
 alpaca_client = None
 alpaca_trading_available = False
-try:
-    from alpaca.trading.client import TradingClient
-    from alpaca.trading.requests import MarketOrderRequest
-    from alpaca.trading.enums import OrderSide, TimeInForce
-    alpaca_client = TradingClient(ALPACA_API_KEY, ALPACA_SECRET_KEY, paper=True)
-    alpaca_trading_available = True
-    print("Alpaca Paper Trading connected")
-except ImportError:
-    print("Warning: alpaca-py not installed. Run: pip install alpaca-py")
-except Exception as e:
-    print(f"Warning: Alpaca connection failed: {e}")
+if ALPACA_API_KEY and ALPACA_SECRET_KEY:
+    try:
+        from alpaca.trading.client import TradingClient
+        from alpaca.trading.requests import MarketOrderRequest
+        from alpaca.trading.enums import OrderSide, TimeInForce
+        alpaca_client = TradingClient(ALPACA_API_KEY, ALPACA_SECRET_KEY, paper=True)
+        alpaca_trading_available = True
+        print("✓ Alpaca Paper Trading connected")
+    except ImportError:
+        print("⚠ alpaca-py not installed. Run: pip install alpaca-py")
+    except Exception as e:
+        print(f"⚠ Alpaca connection failed: {e}")
+else:
+    print("⚠ Alpaca credentials not configured")
 
 # Add parent directories to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

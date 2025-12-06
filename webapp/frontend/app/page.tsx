@@ -49,18 +49,31 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
         ? { email, password, name } 
         : { email, password, totp_code: totpCode || null };
 
+      console.log(`${isRegister ? 'Registration' : 'Login'} request to:`, `${API_URL}${endpoint}`);
+      console.log('Request body:', JSON.stringify({ ...body, password: '[REDACTED]' }));
+
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
 
+      console.log(`${isRegister ? 'Registration' : 'Login'} response status:`, res.status);
+
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || 'Authentication failed');
+        const errorText = await res.text();
+        console.error(`${isRegister ? 'Registration' : 'Login'} failed:`, res.status, errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { detail: errorText || 'Authentication failed' };
+        }
+        throw new Error(errorData.detail || 'Authentication failed');
       }
 
       const data = await res.json();
+      console.log(`${isRegister ? 'Registration' : 'Login'} successful:`, { ...data, access_token: data.access_token ? '[REDACTED]' : undefined });
       
       // Check if 2FA is required
       if (data.requires_2fa && data.temp_token) {

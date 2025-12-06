@@ -7,11 +7,19 @@ import yfinance as yf
 from fredapi import Fred
 from zenml import step
 import warnings
+import os
 warnings.filterwarnings('ignore')
 
 # FRED API Configuration
-FRED_API_KEY = "ebee0a31d662a31865e730fc4deb22c6"
-fred = Fred(api_key=FRED_API_KEY)
+# SECURITY: API key should be in environment variable, not hardcoded
+# Original hardcoded key removed for security: FRED_API_KEY = "****************************" (Line 13)
+FRED_API_KEY = os.getenv("FRED_API_KEY", "")
+if not FRED_API_KEY:
+    print("WARNING: FRED_API_KEY not set. Alternative data features will be limited.")
+    print("Set FRED_API_KEY environment variable to enable FRED data fetching.")
+    fred = None
+else:
+    fred = Fred(api_key=FRED_API_KEY)
 
 
 def fetch_vix_data(start_date: str, end_date: str) -> pd.DataFrame:

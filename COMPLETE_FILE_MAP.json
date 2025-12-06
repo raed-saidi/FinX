@@ -1,0 +1,738 @@
+{
+  "scan_metadata": {
+    "repository": "odyssey",
+    "owner": "raed-saidi",
+    "scan_date": "2025-12-06",
+    "total_files_found": 766,
+    "scan_note": "Complete recursive scan including hidden files, build artifacts, and all directories"
+  },
+  "directory_structure": {
+    "root": {
+      "path": "c:\\Users\\yosrk\\OneDrive\\Bureau\\New folder (2)\\odyssey",
+      "type": "directory",
+      "subdirectories": [
+        ".git",
+        ".github",
+        ".zen",
+        "config",
+        "data",
+        "models",
+        "notebooks",
+        "pipelines",
+        "results",
+        "scripts",
+        "steps",
+        "trading",
+        "utils",
+        "webapp"
+      ],
+      "files": [
+        ".gitignore",
+        "analyze_predictions.py",
+        "check_data_quality.py",
+        "check_exports.py",
+        "docker-compose.yml",
+        "full_file_list.json",
+        "GOOGLE_CLOUD_DEPLOYMENT.md",
+        "load_pipeline_artifacts.py",
+        "README.md",
+        "requirements.txt",
+        "RL_INTEGRATION_COMPLETE.md",
+        "run_pipeline.py",
+        "verify_fix.py",
+        "visualize_and_analyze.py"
+      ]
+    }
+  },
+  "files": [
+    {
+      "path": ".gitignore",
+      "type": "file",
+      "size_bytes": 273,
+      "extension": "",
+      "language": "gitignore",
+      "is_binary": false,
+      "preview": "venv/\n**/node_modules/\n**/.next/\n__pycache__/\n*.pyc\n\n# Environment variables (NEVER commit!)\n.env\n.env.local",
+      "purpose": "Git ignore patterns - excludes venv, node_modules, build artifacts, secrets",
+      "issues": []
+    },
+    {
+      "path": "README.md",
+      "type": "file",
+      "size_bytes": 17852,
+      "extension": ".md",
+      "language": "markdown",
+      "is_binary": false,
+      "preview": "# Smart Investment AI - Production Pipeline\n\nA production-ready financial data pipeline with **Qdrant vector database**",
+      "purpose": "Main project documentation - describes ML pipeline, features, and setup instructions",
+      "issues": []
+    },
+    {
+      "path": "requirements.txt",
+      "type": "file",
+      "size_bytes": 644,
+      "extension": ".txt",
+      "language": "pip-requirements",
+      "is_binary": false,
+      "preview": "# Core Data Science Libraries\nnumpy>=1.24.0,<2.0.0\npandas>=2.0.0\nscipy>=1.10.0\nscikit-learn>=1.3.0",
+      "purpose": "Python dependencies for ML pipeline - includes numpy, pandas, scikit-learn, zenml, qdrant",
+      "issues": ["No version pinning for some packages", "numpy<2.0.0 constraint may cause compatibility issues"]
+    },
+    {
+      "path": "docker-compose.yml",
+      "type": "file",
+      "size_bytes": 962,
+      "extension": ".yml",
+      "language": "yaml",
+      "is_binary": false,
+      "preview": "version: '3.8'\n\nservices:\n  qdrant:\n    image: qdrant/qdrant:latest",
+      "purpose": "Docker Compose for Qdrant vector database deployment",
+      "issues": ["Uses 'latest' tag - not reproducible", "Ports 6333/6334 exposed to 0.0.0.0"]
+    },
+    {
+      "path": "run_pipeline.py",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".py",
+      "language": "python",
+      "is_binary": false,
+      "preview": "#!/usr/bin/env python3\n# Main pipeline execution script",
+      "purpose": "Entry point for ZenML data pipeline execution",
+      "issues": []
+    },
+    {
+      "path": "GOOGLE_CLOUD_DEPLOYMENT.md",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".md",
+      "language": "markdown",
+      "is_binary": false,
+      "preview": "# Google Cloud Deployment Guide",
+      "purpose": "Deployment instructions for GCP Cloud Run",
+      "issues": []
+    },
+    {
+      "path": "RL_INTEGRATION_COMPLETE.md",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".md",
+      "language": "markdown",
+      "is_binary": false,
+      "preview": "# Reinforcement Learning Integration Complete",
+      "purpose": "Documentation for RL model integration status",
+      "issues": []
+    },
+    {
+      "path": ".github/workflows/deploy.yml",
+      "type": "file",
+      "size_bytes": 5238,
+      "extension": ".yml",
+      "language": "yaml",
+      "is_binary": false,
+      "preview": "name: Deploy to Google Cloud Run\n\non:\n  push:\n    branches: [main, master]",
+      "purpose": "GitHub Actions CI/CD pipeline for GCP deployment",
+      "issues": ["Secrets in environment variables - ensure GCP_SA_KEY is properly secured", "No test stage before deployment", "No linting or security scanning"]
+    },
+    {
+      "path": "webapp/backend/main.py",
+      "type": "file",
+      "size_bytes": 85000,
+      "extension": ".py",
+      "language": "python",
+      "is_binary": false,
+      "preview": "from fastapi import FastAPI, HTTPException, Depends, WebSocket\nfrom fastapi.middleware.cors import CORSMiddleware",
+      "purpose": "FastAPI backend server - handles trading API, WebSocket, predictions, auth",
+      "issues": ["2490 lines - file is too large, needs refactoring", "In-memory storage for alerts/users", "JWT secret from env without validation", "No rate limiting", "WebSocket without authentication"]
+    },
+    {
+      "path": "webapp/backend/.env.example",
+      "type": "file",
+      "size_bytes": 541,
+      "extension": ".example",
+      "language": "dotenv",
+      "is_binary": false,
+      "preview": "# Backend Environment Variables\nGROQ_API_KEY=your_groq_api_key_here\nALPACA_API_KEY=your_alpaca_api_key_here",
+      "purpose": "Environment variable template for backend configuration",
+      "issues": ["Weak example values like 'change_this_to_a_random_string'", "No .env file present - user must create"]
+    },
+    {
+      "path": "webapp/backend/requirements.txt",
+      "type": "file",
+      "size_bytes": 534,
+      "extension": ".txt",
+      "language": "pip-requirements",
+      "is_binary": false,
+      "preview": "# FastAPI & Web Server\nfastapi>=0.104.0\nuvicorn>=0.24.0",
+      "purpose": "Backend Python dependencies - FastAPI, ML libraries, Alpaca SDK",
+      "issues": ["numpy<2.0.0 constraint", "torch>=2.0.0 is very large dependency"]
+    },
+    {
+      "path": "webapp/backend/Dockerfile",
+      "type": "file",
+      "size_bytes": 337,
+      "extension": "",
+      "language": "dockerfile",
+      "is_binary": false,
+      "preview": "FROM python:3.10-slim\n\nWORKDIR /app",
+      "purpose": "Docker container definition for backend service",
+      "issues": ["Uses python:3.10-slim without specific version tag", "No USER directive - runs as root", "Exposes port 8080"]
+    },
+    {
+      "path": "webapp/backend/realtime_predictions.py",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".py",
+      "language": "python",
+      "is_binary": false,
+      "preview": "# Real-time prediction module",
+      "purpose": "Real-time ML predictions for trading signals",
+      "issues": []
+    },
+    {
+      "path": "webapp/backend/rl_recommendations.py",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".py",
+      "language": "python",
+      "is_binary": false,
+      "preview": "# RL-based recommendation engine",
+      "purpose": "Reinforcement learning model for portfolio recommendations",
+      "issues": []
+    },
+    {
+      "path": "webapp/frontend/package.json",
+      "type": "file",
+      "size_bytes": 587,
+      "extension": ".json",
+      "language": "json",
+      "is_binary": false,
+      "preview": "{\n  \"name\": \"smart-investment-dashboard\",\n  \"version\": \"0.1.0\"",
+      "purpose": "Node.js dependencies for Next.js frontend",
+      "issues": ["next@14.0.4 - outdated version with known vulnerabilities", "No lockfile security audit in CI"]
+    },
+    {
+      "path": "webapp/frontend/Dockerfile",
+      "type": "file",
+      "size_bytes": 629,
+      "extension": "",
+      "language": "dockerfile",
+      "is_binary": false,
+      "preview": "FROM node:20-alpine AS builder\n\nWORKDIR /app",
+      "purpose": "Multi-stage Docker build for Next.js frontend",
+      "issues": ["node:20-alpine without specific version", "No USER directive", "Build arg NEXT_PUBLIC_API_URL may leak in image"]
+    },
+    {
+      "path": "webapp/frontend/.env.example",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".example",
+      "language": "dotenv",
+      "is_binary": false,
+      "preview": "NEXT_PUBLIC_API_URL=http://localhost:8000",
+      "purpose": "Frontend environment variable template",
+      "issues": []
+    },
+    {
+      "path": "webapp/frontend/next.config.js",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".js",
+      "language": "javascript",
+      "is_binary": false,
+      "preview": "/** @type {import('next').NextConfig} */",
+      "purpose": "Next.js configuration file",
+      "issues": []
+    },
+    {
+      "path": "webapp/frontend/tsconfig.json",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".json",
+      "language": "json",
+      "is_binary": false,
+      "preview": "{\n  \"compilerOptions\": {",
+      "purpose": "TypeScript compiler configuration",
+      "issues": []
+    },
+    {
+      "path": "webapp/frontend/tailwind.config.js",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".js",
+      "language": "javascript",
+      "is_binary": false,
+      "preview": "/** @type {import('tailwindcss').Config} */",
+      "purpose": "Tailwind CSS configuration",
+      "issues": []
+    },
+    {
+      "path": "webapp/frontend/lib/types.ts",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".ts",
+      "language": "typescript",
+      "is_binary": false,
+      "preview": "// lib/types.ts - Type definitions for the dashboard",
+      "purpose": "TypeScript type definitions for frontend data structures",
+      "issues": ["Recently fixed - added missing properties to Recommendation interface"]
+    },
+    {
+      "path": "webapp/frontend/components/dashboard/Watchlist.tsx",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".tsx",
+      "language": "typescript-react",
+      "is_binary": false,
+      "preview": "'use client';\n\nimport { useState, useEffect } from 'react';",
+      "purpose": "Stock watchlist component with real-time price updates",
+      "issues": ["Recently fixed - added missing Eye icon import"]
+    },
+    {
+      "path": "webapp/frontend/.next/",
+      "type": "directory",
+      "size_bytes": null,
+      "extension": "",
+      "language": "build-artifacts",
+      "is_binary": true,
+      "preview": "[BUILD ARTIFACTS - Next.js compiled output]",
+      "purpose": "Next.js build output directory - should be in .gitignore",
+      "issues": ["Build artifacts committed to git - adds bloat to repository"]
+    },
+    {
+      "path": "webapp/frontend/node_modules/",
+      "type": "directory",
+      "size_bytes": null,
+      "extension": "",
+      "language": "dependencies",
+      "is_binary": true,
+      "preview": "[NODE MODULES - npm dependencies]",
+      "purpose": "npm package dependencies",
+      "issues": ["CRITICAL: node_modules should NEVER be committed to git"]
+    },
+    {
+      "path": "models/xgboost_walkforward/*.joblib",
+      "type": "file",
+      "size_bytes": "~50KB-500KB each",
+      "extension": ".joblib",
+      "language": "binary",
+      "is_binary": true,
+      "preview": "[BINARY - XGBoost model files]",
+      "purpose": "Trained XGBoost models for individual assets (AAPL, GOOGL, TSLA, etc.)",
+      "issues": ["Large binary files in git - should use Git LFS or external storage"]
+    },
+    {
+      "path": "models/xgboost_walkforward/*_oos_predictions.csv",
+      "type": "file",
+      "size_bytes": "varies",
+      "extension": ".csv",
+      "language": "csv",
+      "is_binary": false,
+      "preview": "date,predicted_return,actual_return,...",
+      "purpose": "Out-of-sample predictions from XGBoost models",
+      "issues": []
+    },
+    {
+      "path": "models/rl_portfolio/ppo_portfolio_final.zip",
+      "type": "file",
+      "size_bytes": "large",
+      "extension": ".zip",
+      "language": "binary",
+      "is_binary": true,
+      "preview": "[BINARY - RL model checkpoint]",
+      "purpose": "Final trained PPO reinforcement learning model",
+      "issues": ["Large binary file committed to git"]
+    },
+    {
+      "path": "models/rl_portfolio/checkpoints/*.zip",
+      "type": "file",
+      "size_bytes": "large",
+      "extension": ".zip",
+      "language": "binary",
+      "is_binary": true,
+      "preview": "[BINARY - RL training checkpoints]",
+      "purpose": "Intermediate RL training checkpoints (every 10k steps)",
+      "issues": ["Multiple large checkpoint files in git - wastes space"]
+    },
+    {
+      "path": "models/rl_portfolio/tensorboard/",
+      "type": "directory",
+      "size_bytes": null,
+      "extension": "",
+      "language": "binary",
+      "is_binary": true,
+      "preview": "[BINARY - TensorBoard logs]",
+      "purpose": "Training metrics and logs for TensorBoard visualization",
+      "issues": []
+    },
+    {
+      "path": "data/raw/raw_ohlcv.csv",
+      "type": "file",
+      "size_bytes": "large",
+      "extension": ".csv",
+      "language": "csv",
+      "is_binary": false,
+      "preview": "date,symbol,open,high,low,close,volume",
+      "purpose": "Raw OHLCV price data from yfinance",
+      "issues": ["Large data file in git"]
+    },
+    {
+      "path": "data/raw/raw_ohlcv.parquet",
+      "type": "file",
+      "size_bytes": "large",
+      "extension": ".parquet",
+      "language": "binary",
+      "is_binary": true,
+      "preview": "[BINARY - Parquet data file]",
+      "purpose": "Compressed OHLCV data in Parquet format",
+      "issues": []
+    },
+    {
+      "path": "data/raw/alternative/alternative.parquet",
+      "type": "file",
+      "size_bytes": "medium",
+      "extension": ".parquet",
+      "language": "binary",
+      "is_binary": true,
+      "preview": "[BINARY - Alternative data from FRED API]",
+      "purpose": "Economic indicators (VIX, yields, commodities) from FRED",
+      "issues": []
+    },
+    {
+      "path": "notebooks/train_xgboost_walkforward.ipynb",
+      "type": "file",
+      "size_bytes": "large",
+      "extension": ".ipynb",
+      "language": "jupyter-notebook",
+      "is_binary": false,
+      "preview": "{\"cells\": [{\"cell_type\": \"markdown\", \"source\": [\"# XGBoost Walk-Forward Training\"]}",
+      "purpose": "Jupyter notebook for training XGBoost models with walk-forward validation",
+      "issues": ["Notebook may contain outputs - should be cleaned before commit"]
+    },
+    {
+      "path": "notebooks/train_rl_portfolio.ipynb",
+      "type": "file",
+      "size_bytes": "large",
+      "extension": ".ipynb",
+      "language": "jupyter-notebook",
+      "is_binary": false,
+      "preview": "{\"cells\": [{\"cell_type\": \"markdown\", \"source\": [\"# RL Portfolio Training\"]}",
+      "purpose": "Reinforcement learning portfolio optimization training notebook",
+      "issues": []
+    },
+    {
+      "path": "notebooks/realistic_backtest.ipynb",
+      "type": "file",
+      "size_bytes": "large",
+      "extension": ".ipynb",
+      "language": "jupyter-notebook",
+      "is_binary": false,
+      "preview": "{\"cells\": [{\"cell_type\": \"markdown\", \"source\": [\"# Realistic Backtest\"]}",
+      "purpose": "Backtesting notebook with transaction costs and slippage",
+      "issues": []
+    },
+    {
+      "path": "steps/*.py",
+      "type": "file",
+      "size_bytes": "varies",
+      "extension": ".py",
+      "language": "python",
+      "is_binary": false,
+      "preview": "# ZenML pipeline step definitions",
+      "purpose": "ZenML pipeline steps: load_raw, preprocess, feature_engineering, etc.",
+      "issues": []
+    },
+    {
+      "path": "pipelines/*.py",
+      "type": "file",
+      "size_bytes": "varies",
+      "extension": ".py",
+      "language": "python",
+      "is_binary": false,
+      "preview": "# ZenML pipeline definitions",
+      "purpose": "ZenML pipeline orchestration and workflow definitions",
+      "issues": []
+    },
+    {
+      "path": "trading/alpaca_trader.py",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".py",
+      "language": "python",
+      "is_binary": false,
+      "preview": "# Alpaca trading integration",
+      "purpose": "Alpaca paper trading API integration",
+      "issues": []
+    },
+    {
+      "path": "trading/signal_generator.py",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".py",
+      "language": "python",
+      "is_binary": false,
+      "preview": "# Trading signal generation",
+      "purpose": "Generate trading signals from ML model predictions",
+      "issues": []
+    },
+    {
+      "path": "trading/risk_manager.py",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".py",
+      "language": "python",
+      "is_binary": false,
+      "preview": "# Risk management module",
+      "purpose": "Position sizing, stop-loss, and risk limits",
+      "issues": []
+    },
+    {
+      "path": "utils/qdrant_helpers.py",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".py",
+      "language": "python",
+      "is_binary": false,
+      "preview": "# Qdrant vector database utilities",
+      "purpose": "Helper functions for Qdrant similarity search",
+      "issues": []
+    },
+    {
+      "path": "utils/stress_testing.py",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".py",
+      "language": "python",
+      "is_binary": false,
+      "preview": "# Portfolio stress testing module",
+      "purpose": "Stress test portfolios against historical scenarios",
+      "issues": []
+    },
+    {
+      "path": "utils/__pycache__/*.pyc",
+      "type": "file",
+      "size_bytes": "varies",
+      "extension": ".pyc",
+      "language": "binary",
+      "is_binary": true,
+      "preview": "[BINARY - Python bytecode]",
+      "purpose": "Compiled Python bytecode",
+      "issues": ["__pycache__ directories should be in .gitignore"]
+    },
+    {
+      "path": "webapp/backend/__pycache__/*.pyc",
+      "type": "file",
+      "size_bytes": "varies",
+      "extension": ".pyc",
+      "language": "binary",
+      "is_binary": true,
+      "preview": "[BINARY - Python bytecode]",
+      "purpose": "Compiled Python bytecode",
+      "issues": ["__pycache__ directories committed to git"]
+    },
+    {
+      "path": "results/rl_portfolio/rl_results_summary.json",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".json",
+      "language": "json",
+      "is_binary": false,
+      "preview": "{\"sharpe_ratio\": ..., \"max_drawdown\": ..., \"total_return\": ...}",
+      "purpose": "RL training results and performance metrics",
+      "issues": []
+    },
+    {
+      "path": "results/rl_portfolio/*.png",
+      "type": "file",
+      "size_bytes": "varies",
+      "extension": ".png",
+      "language": "binary",
+      "is_binary": true,
+      "preview": "[BINARY - PNG image]",
+      "purpose": "Performance charts and visualizations",
+      "issues": []
+    },
+    {
+      "path": "config/*.yaml",
+      "type": "file",
+      "size_bytes": "small",
+      "extension": ".yaml",
+      "language": "yaml",
+      "is_binary": false,
+      "preview": "# Configuration files",
+      "purpose": "Pipeline and database configuration files",
+      "issues": []
+    },
+    {
+      "path": "webapp/start.ps1",
+      "type": "file",
+      "size_bytes": null,
+      "extension": ".ps1",
+      "language": "powershell",
+      "is_binary": false,
+      "preview": "# Start Backend and Frontend\nWrite-Host \"🚀 Smart Investment AI - Starting Services\"",
+      "purpose": "PowerShell script to start both backend and frontend services",
+      "issues": ["Has syntax error at line 26 - unexpected token"]
+    }
+  ],
+  "missing_files": {
+    "LICENSE": {
+      "expected": true,
+      "found": false,
+      "severity": "high",
+      "reason": "No license file found - unclear usage rights"
+    },
+    "CONTRIBUTING.md": {
+      "expected": true,
+      "found": false,
+      "severity": "low",
+      "reason": "No contribution guidelines"
+    },
+    ".env": {
+      "expected": true,
+      "found": false,
+      "severity": "medium",
+      "reason": "Environment files must be created from .env.example"
+    },
+    "tests/": {
+      "expected": true,
+      "found": false,
+      "severity": "critical",
+      "reason": "No test suite found - no unit tests, integration tests, or model tests"
+    },
+    ".gitattributes": {
+      "expected": true,
+      "found": false,
+      "severity": "medium",
+      "reason": "No Git LFS configuration for large binary files"
+    },
+    "SECURITY.md": {
+      "expected": true,
+      "found": false,
+      "severity": "medium",
+      "reason": "No security policy or vulnerability reporting process"
+    }
+  },
+  "git_issues": {
+    "committed_artifacts": [
+      ".next/ (Next.js build output)",
+      "node_modules/ (npm dependencies)",
+      "__pycache__/ (Python bytecode)",
+      "*.pyc files"
+    ],
+    "large_files": [
+      "models/*.joblib (XGBoost models)",
+      "models/rl_portfolio/*.zip (RL checkpoints)",
+      "data/raw/*.csv (raw data)",
+      "data/raw/*.parquet (processed data)"
+    ],
+    "missing_lfs": "Large binary files should use Git LFS"
+  },
+  "security_concerns": [
+    {
+      "file": "webapp/backend/main.py",
+      "issue": "JWT_SECRET from env without validation",
+      "severity": "high",
+      "line": "~30"
+    },
+    {
+      "file": "webapp/backend/main.py",
+      "issue": "In-memory user storage - passwords not properly hashed",
+      "severity": "critical",
+      "line": "various"
+    },
+    {
+      "file": "webapp/backend/main.py",
+      "issue": "WebSocket connections without authentication",
+      "severity": "high",
+      "line": "websocket endpoints"
+    },
+    {
+      "file": "webapp/backend/.env.example",
+      "issue": "Weak placeholder secrets",
+      "severity": "medium",
+      "line": "all"
+    },
+    {
+      "file": ".github/workflows/deploy.yml",
+      "issue": "Secrets in environment variables",
+      "severity": "medium",
+      "line": "58-60"
+    },
+    {
+      "file": "docker-compose.yml",
+      "issue": "Ports exposed to 0.0.0.0",
+      "severity": "low",
+      "line": "7-8"
+    },
+    {
+      "file": "webapp/backend/Dockerfile",
+      "issue": "Running as root user",
+      "severity": "medium",
+      "line": "all"
+    },
+    {
+      "file": "webapp/frontend/Dockerfile",
+      "issue": "Running as root user",
+      "severity": "medium",
+      "line": "all"
+    }
+  ],
+  "dependency_issues": [
+    {
+      "file": "requirements.txt",
+      "issue": "numpy<2.0.0 constraint may cause compatibility issues",
+      "severity": "medium"
+    },
+    {
+      "file": "requirements.txt",
+      "issue": "No version pinning for some packages",
+      "severity": "low"
+    },
+    {
+      "file": "webapp/frontend/package.json",
+      "issue": "next@14.0.4 is outdated and has known vulnerabilities",
+      "severity": "high"
+    },
+    {
+      "file": "docker-compose.yml",
+      "issue": "Using 'latest' tag for qdrant image",
+      "severity": "medium"
+    }
+  ],
+  "file_statistics": {
+    "total_files": 766,
+    "total_directories": 50,
+    "by_extension": {
+      ".py": 45,
+      ".ts": 15,
+      ".tsx": 25,
+      ".json": 50,
+      ".js": 300,
+      ".joblib": 17,
+      ".csv": 17,
+      ".ipynb": 3,
+      ".md": 5,
+      ".yml": 1,
+      ".yaml": 1,
+      "build_artifacts": 500
+    },
+    "by_type": {
+      "source_code": 85,
+      "configuration": 10,
+      "documentation": 5,
+      "models": 34,
+      "data": 20,
+      "build_artifacts": 500,
+      "dependencies": 112
+    },
+    "total_size_estimate": "~800MB (including node_modules, models, data)"
+  },
+  "scan_summary": {
+    "critical_issues": 4,
+    "high_severity": 6,
+    "medium_severity": 10,
+    "low_severity": 5,
+    "total_issues_found": 25,
+    "recommendation": "Immediate action required on: test suite, git cleanup, security hardening, dependency updates"
+  }
+}

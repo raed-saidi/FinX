@@ -1,0 +1,169 @@
+# Dependabot Configuration
+# Automatically creates PRs to update dependencies
+# Documentation: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # ==========================================
+  # Python Dependencies (Root ML Pipeline)
+  # ==========================================
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      ml-packages:
+        patterns:
+          - "numpy"
+          - "pandas"
+          - "scikit-learn"
+          - "xgboost"
+      api-clients:
+        patterns:
+          - "groq"
+          - "yfinance"
+          - "fredapi"
+          - "alpaca-py"
+      infrastructure:
+        patterns:
+          - "zenml"
+          - "mlflow"
+          - "qdrant-client"
+
+  # ==========================================
+  # Backend Python Dependencies
+  # ==========================================
+  - package-ecosystem: "pip"
+    directory: "/webapp/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+      - "backend"
+    commit-message:
+      prefix: "deps(backend)"
+      include: "scope"
+    groups:
+      web-framework:
+        patterns:
+          - "fastapi"
+          - "uvicorn"
+          - "pydantic"
+          - "python-multipart"
+      rl-packages:
+        patterns:
+          - "torch"
+          - "stable-baselines3"
+          - "gymnasium"
+
+  # ==========================================
+  # Frontend NPM Dependencies
+  # ==========================================
+  - package-ecosystem: "npm"
+    directory: "/webapp/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "frontend"
+    commit-message:
+      prefix: "deps(frontend)"
+      prefix-development: "deps-dev(frontend)"
+      include: "scope"
+    versioning-strategy: "increase"
+    groups:
+      nextjs-react:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "eslint-config-next"
+      testing:
+        patterns:
+          - "jest"
+          - "@testing-library/*"
+          - "@types/jest"
+      ui-libraries:
+        patterns:
+          - "lucide-react"
+          - "recharts"
+          - "framer-motion"
+          - "lightweight-charts"
+      dev-tools:
+        patterns:
+          - "typescript"
+          - "tailwindcss"
+          - "autoprefixer"
+          - "postcss"
+
+  # ==========================================
+  # Docker Base Images
+  # ==========================================
+  - package-ecosystem: "docker"
+    directory: "/webapp/backend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "backend"
+    commit-message:
+      prefix: "deps(docker)"
+
+  - package-ecosystem: "docker"
+    directory: "/webapp/frontend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "docker"
+      - "frontend"
+    commit-message:
+      prefix: "deps(docker)"
+
+  # ==========================================
+  # GitHub Actions
+  # ==========================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+      timezone: "America/New_York"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"
+    commit-message:
+      prefix: "deps(actions)"

@@ -40,6 +40,17 @@ jobs:
         run: |
           gcloud auth configure-docker $REGION-docker.pkg.dev
 
+      - name: Debug - Check files exist
+        run: |
+          echo "=== Checking required directories ==="
+          ls -la
+          echo "=== models directory ==="
+          ls -la models/ | head -20
+          echo "=== data/processed directory ==="
+          ls -la data/processed/
+          echo "=== webapp/backend directory ==="
+          ls -la webapp/backend/ | head -20
+
       - name: Build and Push Backend Image
         run: |
           IMAGE_NAME=$REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$BACKEND_SERVICE:${{ github.sha }}

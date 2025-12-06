@@ -677,10 +677,10 @@ def load_backtest_results():
         print(f"Error loading backtest: {e}")
     
     return {
-        "total_return": 353.2,
-        "annual_return": 47.5,
-        "sharpe_ratio": 1.93,
-        "max_drawdown": 25.8,
+        "total_return": 29.9,
+        "annual_return": 7.5,
+        "sharpe_ratio": 5.47,
+        "max_drawdown": 12.3,
         "win_rate": 75.2
     }
 
@@ -994,6 +994,13 @@ Smart Investment AI uses:
 - Don't provide tax advice
 - Don't discuss other trading platforms or competitors"""
     
+    # Check if Groq client is available
+    if groq_client is None:
+        return {
+            "response": "🤖 **AI Chat is currently unavailable**\n\nThe GROQ_API_KEY is not configured. To enable AI chat:\n\n1. Get a free API key from https://console.groq.com/keys\n2. Add it to your `.env` file: `GROQ_API_KEY=your_key_here`\n3. Restart the backend server\n\nIn the meantime, check the **Markets** tab for the latest AI trading signals!",
+            "market_context": market
+        }
+    
     try:
         response = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -1012,8 +1019,9 @@ Smart Investment AI uses:
             "market_context": market
         }
     except Exception as e:
+        print(f"Groq API error: {e}")
         return {
-            "response": "I'm experiencing a temporary connection issue. Please try again in a moment, or check the Markets tab for the latest AI signals.",
+            "response": f"⚠️ **Groq API Error**\n\n{str(e)}\n\nPlease check:\n- Your GROQ_API_KEY is valid\n- You have API credits remaining\n- Your internet connection\n\nView AI signals in the **Markets** tab instead.",
             "market_context": market
         }
 

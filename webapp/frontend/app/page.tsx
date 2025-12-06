@@ -146,14 +146,14 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
           ×
         </button>
         
-        <div className=\"text-center mb-6\">
-          <div className=\"w-14 h-14 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center mx-auto mb-4\">
-            {requires2FA ? <Shield className=\"w-7 h-7 text-white\" /> : <LineChart className=\"w-7 h-7 text-white\" />}
+        <div className="text-center mb-6">
+          <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center mx-auto mb-4">
+            {requires2FA ? <Shield className="w-7 h-7 text-white" /> : <LineChart className="w-7 h-7 text-white" />}
           </div>
-          <h2 className=\"text-2xl font-bold text-white mb-2\">
+          <h2 className="text-2xl font-bold text-white mb-2">
             {requires2FA ? 'Two-Factor Authentication' : isRegister ? 'Create Account' : 'Welcome Back'}
           </h2>
-          <p className=\"text-gray-400\">
+          <p className="text-gray-400">
             {requires2FA 
               ? 'Enter the 6-digit code from your authenticator app'
               : isRegister 

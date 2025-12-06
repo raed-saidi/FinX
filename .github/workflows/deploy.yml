@@ -56,9 +56,8 @@ jobs:
             --platform managed \
             --region $REGION \
             --allow-unauthenticated \
-            --set-env-vars "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" \
-            --set-env-vars "ALPACA_API_KEY=${{ secrets.ALPACA_API_KEY }}" \
-            --set-env-vars "ALPACA_SECRET_KEY=${{ secrets.ALPACA_SECRET_KEY }}" \
+            --service-account github-deployer@$PROJECT_ID.iam.gserviceaccount.com \
+            --set-secrets "GROQ_API_KEY=groq_api_key:latest,ALPACA_API_KEY=alpaca_api_key:latest,ALPACA_SECRET_KEY=alpaca_secret_key:latest,FRED_API_KEY=fred_api_key:latest,QDRANT_API_KEY=qdrant_api_key:latest,QDRANT_CLOUD_URL=qdrant_cloud_url:latest,JWT_SECRET=jwt_secret:latest,PASSWORD_SALT=password_salt:latest" \
             --memory 1Gi \
             --cpu 1 \
             --min-instances 0 \

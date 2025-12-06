@@ -25,8 +25,9 @@ WORKDIR /app
 # Copy application code
 COPY --chown=appuser:appuser webapp/backend /app
 
-# Copy models from project root
+# Copy models and data from project root
 COPY --chown=appuser:appuser models /app/models
+COPY --chown=appuser:appuser data/processed /app/data/processed
 
 # Switch to non-root user
 USER appuser

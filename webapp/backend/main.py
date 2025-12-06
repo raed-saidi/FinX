@@ -303,6 +303,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ============== Health Check ==============
+
+@app.get("/health", tags=["Health"])
+async def health_check():
+    """
+    Health check endpoint for Docker and Cloud Run monitoring.
+    Returns service status and dependency availability.
+    """
+    return {
+        "status": "healthy",
+        "service": "Smart Investment AI Backend",
+        "version": "1.0.0",
+        "timestamp": datetime.now().isoformat(),
+        "dependencies": {
+            "groq": groq_client is not None,
+            "alpaca": alpaca_trading_available,
+            "qdrant": qdrant_manager.collection_name if qdrant_manager else None
+        }
+    }
+
 # ============== Models ==============
 
 class Recommendation(BaseModel):

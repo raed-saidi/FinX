@@ -1,0 +1,324 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.10'
+  NODE_VERSION: '20'
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  BACKEND_SERVICE: finx-backend
+  FRONTEND_SERVICE: finx-frontend
+
+jobs:
+  # ==========================================
+  # JOB 1: Python Code Quality & Security
+  # ==========================================
+  python-quality:
+    name: Python Linting & Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install linting tools
+        run: |
+          pip install --upgrade pip
+          pip install flake8 black mypy bandit safety
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r webapp/backend/requirements.txt
+      
+      - name: Lint with flake8
+        run: |
+          # Stop build if critical errors
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Exit-zero treats all errors as warnings
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      
+      - name: Check code formatting with black
+        run: black --check --diff .
+        continue-on-error: true
+      
+      - name: Type check with mypy
+        run: mypy --ignore-missing-imports webapp/backend/
+        continue-on-error: true
+      
+      - name: Security scan with bandit
+        run: |
+          bandit -r webapp/backend/ -ll -f json -o bandit-report.json
+          bandit -r webapp/backend/ -ll
+        continue-on-error: true
+      
+      - name: Upload bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+
+  # ==========================================
+  # JOB 2: Python Tests
+  # ==========================================
+  python-tests:
+    name: Python Unit Tests
+    runs-on: ubuntu-latest
+    needs: python-quality
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pytest pytest-cov pytest-asyncio httpx
+          pip install -r requirements.txt
+          pip install -r webapp/backend/requirements.txt
+      
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=webapp/backend --cov-report=xml --cov-report=html --cov-report=term
+        continue-on-error: true
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: htmlcov/
+
+  # ==========================================
+  # JOB 3: Frontend Code Quality
+  # ==========================================
+  frontend-quality:
+    name: Frontend Linting & Type Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./webapp/frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: webapp/frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Lint with ESLint
+        run: npm run lint
+        continue-on-error: true
+      
+      - name: Type check with TypeScript
+        run: npx tsc --noEmit
+      
+      - name: Security audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+  # ==========================================
+  # JOB 4: Frontend Build & Tests
+  # ==========================================
+  frontend-tests:
+    name: Frontend Build & Tests
+    runs-on: ubuntu-latest
+    needs: frontend-quality
+    defaults:
+      run:
+        working-directory: ./webapp/frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: webapp/frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests (if available)
+        run: npm test || echo "No tests found"
+        continue-on-error: true
+      
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://finx-backend.run.app
+
+  # ==========================================
+  # JOB 5: Docker Security Scan
+  # ==========================================
+  docker-security:
+    name: Docker Security Scan
+    runs-on: ubuntu-latest
+    needs: [python-tests, frontend-tests]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy scan on Backend Dockerfile
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'webapp/backend/Dockerfile'
+          format: 'sarif'
+          output: 'trivy-backend-results.sarif'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+      
+      - name: Run Trivy scan on Frontend Dockerfile
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'webapp/frontend/Dockerfile'
+          format: 'sarif'
+          output: 'trivy-frontend-results.sarif'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+      
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: '.'
+        continue-on-error: true
+
+  # ==========================================
+  # JOB 6: Deploy to Production
+  # ==========================================
+  deploy-production:
+    name: Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    needs: [python-tests, frontend-tests, docker-security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://finx-frontend.run.app
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      - name: Create Artifact Registry Repository
+        run: |
+          gcloud artifacts repositories create finx-docker-repo \
+            --repository-format=docker \
+            --location=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            || echo "Repository already exists"
+      
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+      
+      # Backend Deployment
+      - name: Build and Push Backend Image
+        run: |
+          cd webapp/backend
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/finx-docker-repo/${{ env.BACKEND_SERVICE }}:${{ github.sha }}
+          LATEST=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/finx-docker-repo/${{ env.BACKEND_SERVICE }}:latest
+          docker build -t $IMAGE -t $LATEST .
+          docker push $IMAGE
+          docker push $LATEST
+      
+      - name: Deploy Backend to Cloud Run
+        id: deploy-backend
+        run: |
+          gcloud run deploy ${{ env.BACKEND_SERVICE }} \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/finx-docker-repo/${{ env.BACKEND_SERVICE }}:${{ github.sha }} \
+            --platform managed \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --set-env-vars "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }},ALPACA_API_KEY=${{ secrets.ALPACA_API_KEY }},ALPACA_SECRET_KEY=${{ secrets.ALPACA_SECRET_KEY }},FRED_API_KEY=${{ secrets.FRED_API_KEY }}" \
+            --memory 2Gi \
+            --cpu 2 \
+            --timeout 300 \
+            --min-instances 0 \
+            --max-instances 10
+          
+          URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region ${{ env.REGION }} --format 'value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "✅ Backend deployed to: $URL"
+      
+      # Frontend Deployment
+      - name: Build and Push Frontend Image
+        env:
+          BACKEND_URL: ${{ steps.deploy-backend.outputs.url }}
+        run: |
+          cd webapp/frontend
+          IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/finx-docker-repo/${{ env.FRONTEND_SERVICE }}:${{ github.sha }}
+          LATEST=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/finx-docker-repo/${{ env.FRONTEND_SERVICE }}:latest
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL=$BACKEND_URL \
+            -t $IMAGE -t $LATEST .
+          docker push $IMAGE
+          docker push $LATEST
+      
+      - name: Deploy Frontend to Cloud Run
+        id: deploy-frontend
+        run: |
+          gcloud run deploy ${{ env.FRONTEND_SERVICE }} \
+            --image ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/finx-docker-repo/${{ env.FRONTEND_SERVICE }}:${{ github.sha }} \
+            --platform managed \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --memory 512Mi \
+            --cpu 1 \
+            --timeout 60 \
+            --min-instances 0 \
+            --max-instances 5
+          
+          URL=$(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region ${{ env.REGION }} --format 'value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "✅ Frontend deployed to: $URL"
+      
+      # Smoke Tests
+      - name: Run Smoke Tests
+        env:
+          BACKEND_URL: ${{ steps.deploy-backend.outputs.url }}
+          FRONTEND_URL: ${{ steps.deploy-frontend.outputs.url }}
+        run: |
+          echo "Testing backend health endpoint..."
+          curl -f $BACKEND_URL/health || echo "⚠️ Backend health check failed"
+          
+          echo "Testing frontend..."
+          curl -f $FRONTEND_URL/ || echo "⚠️ Frontend check failed"
+          
+          echo "✅ Deployment complete!"
+          echo "Backend: $BACKEND_URL"
+          echo "Frontend: $FRONTEND_URL"

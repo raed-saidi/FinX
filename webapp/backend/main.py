@@ -47,11 +47,11 @@ try:
     from alpaca.trading.enums import OrderSide, TimeInForce
     alpaca_client = TradingClient(ALPACA_API_KEY, ALPACA_SECRET_KEY, paper=True)
     alpaca_trading_available = True
-    print("✅ Alpaca Paper Trading connected!")
+    print("Alpaca Paper Trading connected")
 except ImportError:
-    print("⚠️ alpaca-py not installed. Run: pip install alpaca-py")
+    print("Warning: alpaca-py not installed. Run: pip install alpaca-py")
 except Exception as e:
-    print(f"⚠️ Alpaca connection failed: {e}")
+    print(f"Warning: Alpaca connection failed: {e}")
 
 # Add parent directories to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -66,7 +66,7 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        print(f"✅ WebSocket connected. Total: {len(self.active_connections)}")
+        print(f"WebSocket connected. Total: {len(self.active_connections)}")
     
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
@@ -275,7 +275,7 @@ async def run_trading_bot():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events."""
-    print("🚀 Starting Smart Investment AI Backend...")
+    print("Starting Smart Investment AI Backend...")
     yield
     # Cleanup
     global bot_task
@@ -285,7 +285,7 @@ async def lifespan(app: FastAPI):
             await bot_task
         except asyncio.CancelledError:
             pass
-    print("👋 Shutting down...")
+    print("Shutting down...")
 
 app = FastAPI(
     title="Smart Investment AI",
@@ -514,21 +514,22 @@ DATA_DIR = BASE_DIR / "data"
 MODELS_DIR = BASE_DIR / "models"
 RESULTS_DIR = BASE_DIR / "results"
 
-# Import real-time prediction engine
+# Import RL recommendation engine (XGBoost → RL → Recommendations)
 try:
-    from realtime_predictions import generate_realtime_predictions, get_market_summary as get_realtime_market_summary
+    from rl_recommendations import generate_rl_recommendations
+    from realtime_predictions import get_market_summary as get_realtime_market_summary
     REALTIME_AVAILABLE = True
-    print("✓ Real-time prediction engine loaded")
+    print("RL recommendation engine loaded")
 except Exception as e:
     REALTIME_AVAILABLE = False
-    print(f"✗ Real-time predictions not available: {e}")
+    print(f"✗ RL recommendations not available: {e}")
 
 # Cache for recommendations (refresh every 5 minutes)
 _recommendations_cache = None
 _recommendations_timestamp = None
 
 def load_recommendations():
-    """Load AI recommendations - uses real-time predictions when available."""
+    """Load AI recommendations - uses RL-optimized portfolio allocation."""
     global _recommendations_cache, _recommendations_timestamp
     
     from datetime import datetime, timedelta
@@ -538,18 +539,20 @@ def load_recommendations():
         if datetime.now() - _recommendations_timestamp < timedelta(minutes=5):
             return _recommendations_cache
     
-    # Try real-time predictions first
+    # Try RL recommendations (XGBoost → RL → Output)
     if REALTIME_AVAILABLE:
         try:
-            print("Generating real-time predictions...")
-            recommendations = generate_realtime_predictions()
+            print("Generating RL-optimized recommendations...")
+            recommendations = generate_rl_recommendations()
             if recommendations:
                 _recommendations_cache = recommendations
                 _recommendations_timestamp = datetime.now()
-                print(f"✓ Generated {len(recommendations)} real-time recommendations")
+                print(f"Generated {len(recommendations)} RL recommendations")
                 return recommendations
         except Exception as e:
-            print(f"Real-time predictions failed: {e}")
+            print(f"RL recommendations failed: {e}")
+            import traceback
+            traceback.print_exc()
     
     # Fallback to static predictions from CSV files
     print("Falling back to static predictions...")
@@ -2207,7 +2210,7 @@ try:
     sys.path.insert(0, str(BASE_DIR / "utils"))
     from stress_testing import StressTesting
     STRESS_TESTING_AVAILABLE = True
-    print("✓ Stress testing module loaded")
+    print("Stress testing module loaded")
 except Exception as e:
     STRESS_TESTING_AVAILABLE = False
     print(f"✗ Stress testing not available: {e}")

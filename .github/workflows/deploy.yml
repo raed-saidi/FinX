@@ -29,13 +29,17 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker for GCR
-        run: gcloud auth configure-docker
+        run: |
+          gcloud auth configure-docker gcr.io
+          gcloud auth configure-docker $REGION-docker.pkg.dev
 
       - name: Build and Push Backend Image
         run: |
           cd webapp/backend
           docker build -t gcr.io/$PROJECT_ID/$BACKEND_SERVICE:${{ github.sha }} .
+          docker tag gcr.io/$PROJECT_ID/$BACKEND_SERVICE:${{ github.sha }} gcr.io/$PROJECT_ID/$BACKEND_SERVICE:latest
           docker push gcr.io/$PROJECT_ID/$BACKEND_SERVICE:${{ github.sha }}
+          docker push gcr.io/$PROJECT_ID/$BACKEND_SERVICE:latest
 
       - name: Deploy Backend to Cloud Run
         run: |
@@ -80,7 +84,9 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker for GCR
-        run: gcloud auth configure-docker
+        run: |
+          gcloud auth configure-docker gcr.io
+          gcloud auth configure-docker $REGION-docker.pkg.dev
 
       - name: Build and Push Frontend Image
         run: |
@@ -88,7 +94,9 @@ jobs:
           docker build \
             --build-arg NEXT_PUBLIC_API_URL=${{ needs.deploy-backend.outputs.backend_url }} \
             -t gcr.io/$PROJECT_ID/$FRONTEND_SERVICE:${{ github.sha }} .
+          docker tag gcr.io/$PROJECT_ID/$FRONTEND_SERVICE:${{ github.sha }} gcr.io/$PROJECT_ID/$FRONTEND_SERVICE:latest
           docker push gcr.io/$PROJECT_ID/$FRONTEND_SERVICE:${{ github.sha }}
+          docker push gcr.io/$PROJECT_ID/$FRONTEND_SERVICE:latest
 
       - name: Deploy Frontend to Cloud Run
         run: |

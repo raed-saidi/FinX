@@ -10,7 +10,7 @@ websockets>=14.0,<15.0
 
 # API Clients
 groq>=0.11.0,<0.12.0
-alpaca-py>=0.32.0,<0.33.0
+alpaca-py>=0.32.0,<0.44.0
 
 # Data Science (lightweight)
 pandas>=2.2.0

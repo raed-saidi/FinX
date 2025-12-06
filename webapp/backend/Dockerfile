@@ -4,7 +4,7 @@ FROM python:3.10.15-slim-bookworm AS builder
 
 WORKDIR /build
 
-COPY requirements.txt .
+COPY webapp/backend/requirements.txt .
 RUN pip install --user --no-cache-dir --upgrade pip && \
     pip install --user --no-cache-dir -r requirements.txt
 
@@ -23,7 +23,10 @@ ENV PATH=/home/appuser/.local/bin:$PATH
 WORKDIR /app
 
 # Copy application code
-COPY --chown=appuser:appuser . .
+COPY --chown=appuser:appuser webapp/backend /app
+
+# Copy models from project root
+COPY --chown=appuser:appuser models /app/models
 
 # Switch to non-root user
 USER appuser

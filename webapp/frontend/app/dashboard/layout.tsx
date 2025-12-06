@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
-import Navbar from '@/components/layout/Navbar';
 import ChatWidget from '@/components/chat/ChatWidget';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
@@ -36,13 +35,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         className="transition-all duration-300"
         style={{ marginLeft: mainMargin }}
       >
-        <Navbar />
-        {/* Market Ticker - Below navbar (h-14 = 56px) */}
-        <div className="fixed top-14 right-0 z-30 transition-all duration-300" style={{ left: mainMargin }}>
+        {/* Market Ticker - At the top */}
+        <div className="fixed top-0 right-0 z-30 transition-all duration-300" style={{ left: mainMargin }}>
           <MarketTicker height={36} speed={100} />
         </div>
-        {/* pt-[108px] = navbar (56px) + ticker (36px) + spacing (16px) */}
-        <main className="p-4 md:p-6 pt-[108px] min-h-screen">
+        {/* pt-[52px] = ticker (36px) + spacing (16px) */}
+        <main className="p-4 md:p-6 pt-[52px] min-h-screen">
           <ErrorBoundary>
             {children}
           </ErrorBoundary>

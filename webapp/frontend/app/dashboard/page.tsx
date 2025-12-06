@@ -553,39 +553,65 @@ export default function DashboardPage() {
             </div>
 
             <div className="p-4 pb-6 space-y-2 max-h-[440px] overflow-y-auto">
-              {recommendations.map((rec, index) => {
-                const isPositive = rec.signal > 0;
-                return (
-                  <motion.div
-                    key={rec.asset}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    onClick={() => handleInvestClick(rec)}
-                    className="flex items-center justify-between p-3 rounded hover:bg-muted transition cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <StockLogo symbol={rec.asset} size="sm" />
-                      <div>
-                        <span className="text-foreground font-medium">{rec.asset}</span>
-                        <p className="text-muted-foreground text-xs">${rec.current_price?.toFixed(2)}</p>
+              {loadingStates.recommendations ? (
+                <>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex items-center justify-between p-3">
+                      <div className="flex items-center gap-3">
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <div className="space-y-2">
+                          <Skeleton width={60} height={14} />
+                          <Skeleton width={40} height={10} />
+                        </div>
+                      </div>
+                      <div className="text-right space-y-2">
+                        <Skeleton width={50} height={14} />
+                        <Skeleton width={40} height={16} />
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {isPositive ? '+' : ''}{(rec.signal * 100).toFixed(2)}%
-                      </p>
-                      <p className={`text-xs px-1.5 py-0.5 rounded ${
-                        rec.direction === 'LONG' ? 'bg-emerald-500/20 text-emerald-400' : 
-                        rec.direction === 'SHORT' ? 'bg-red-500/20 text-red-400' : 
-                        'bg-gray-500/20 text-gray-400'
-                      }`}>
-                        {rec.direction}
-                      </p>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                  ))}
+                </>
+              ) : recommendations.length === 0 ? (
+                <div className="py-12 text-center">
+                  <Bot className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-30" />
+                  <p className="text-muted-foreground text-sm">No recommendations available</p>
+                  <p className="text-muted-foreground text-xs mt-1">AI signals will appear here</p>
+                </div>
+              ) : (
+                recommendations.map((rec, index) => {
+                  const isPositive = rec.signal > 0;
+                  return (
+                    <motion.div
+                      key={rec.asset}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => handleInvestClick(rec)}
+                      className="flex items-center justify-between p-3 rounded hover:bg-muted transition cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <StockLogo symbol={rec.asset} size="sm" />
+                        <div>
+                          <span className="text-foreground font-medium">{rec.asset}</span>
+                          <p className="text-muted-foreground text-xs">${rec.current_price?.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={`font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {isPositive ? '+' : ''}{(rec.signal * 100).toFixed(2)}%
+                        </p>
+                        <p className={`text-xs px-1.5 py-0.5 rounded ${
+                          rec.direction === 'LONG' ? 'bg-emerald-500/20 text-emerald-400' : 
+                          rec.direction === 'SHORT' ? 'bg-red-500/20 text-red-400' : 
+                          'bg-gray-500/20 text-gray-400'
+                        }`}>
+                          {rec.direction}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
             </div>
           </motion.div>
         </div>

@@ -5,6 +5,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -22,10 +23,14 @@ import {
   X,
   Shield,
   Brain,
+  Bell,
+  Search,
+  Menu,
 } from 'lucide-react';
 import { useDashboardStore } from '@/store/dashboard-store';
 import { useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme';
+import MarketStatusBadge from '@/components/ui/MarketStatusBadge';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Home', href: '/dashboard' },
@@ -47,7 +52,25 @@ const bottomItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { sidebarCollapsed, toggleSidebar, mobileMenuOpen, closeMobileMenu, logout } = useDashboardStore();
+  const { sidebarCollapsed, toggleSidebar, mobileMenuOpen, closeMobileMenu, toggleMobileMenu, logout, portfolio } = useDashboardStore();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  
+  // Generate notifications from recent trades
+  useEffect(() => {
+    if (portfolio?.trades && portfolio.trades.length > 0) {
+      const recentTrades = portfolio.trades
+        .slice(-3)
+        .map((trade: any, idx: number) => ({
+          id: `trade-${idx}`,
+          title: 'Trade Executed',
+          message: `${trade.action.toUpperCase()} ${trade.shares} ${trade.symbol} @ $${trade.price?.toFixed(2)}`,
+          type: 'success' as const,
+          time: new Date(trade.timestamp).toLocaleTimeString(),
+        }));
+      setNotifications(recentTrades);
+    }
+  }, [portfolio?.trades]);
   
   const handleLogout = () => {
     logout();
@@ -61,30 +84,124 @@ export default function Sidebar() {
 
   const sidebarContent = (isMobile: boolean = false) => (
     <>
-      {/* Logo */}
-      <div className="h-20 flex items-center justify-between px-6 border-b border-border">
-        <Link href="/dashboard" className="flex items-center gap-3" onClick={handleNavClick}>
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center flex-shrink-0">
-            <Zap className="w-5 h-5 text-white" />
-          </div>
-          <AnimatePresence>
-            {(!sidebarCollapsed || isMobile) && (
-              <motion.span
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                className="text-xl font-bold text-foreground"
+      {/* Logo & Header Actions */}
+      <div className="border-b border-border">
+        <div className="h-20 flex items-center justify-between px-6">
+          <Link href="/dashboard" className="flex items-center gap-3" onClick={handleNavClick}>
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center flex-shrink-0">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <AnimatePresence>
+              {(!sidebarCollapsed || isMobile) && (
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="text-xl font-bold text-foreground"
+                >
+                  FinX
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </Link>
+          {isMobile && (
+            <button onClick={closeMobileMenu} className="p-2 text-muted-foreground hover:text-foreground">
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+        
+        {/* Quick Actions - Market Status, Notifications, Search */}
+        <AnimatePresence>
+          {(!sidebarCollapsed || isMobile) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="px-3 pb-3 space-y-2"
+            >
+              {/* Market Status */}
+              <div className="px-3 py-2 bg-card border border-border rounded">
+                <MarketStatusBadge />
+              </div>
+              
+              {/* Notifications */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="w-full flex items-center gap-3 px-3 py-2 bg-card border border-border rounded text-muted-foreground hover:text-foreground hover:border-muted-foreground transition"
+                >
+                  <Bell className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm font-medium">Notifications</span>
+                  {notifications.length > 0 && (
+                    <span className="ml-auto w-5 h-5 bg-red-500 text-white text-xs flex items-center justify-center rounded-full">
+                      {notifications.length}
+                    </span>
+                  )}
+                </button>
+                
+                <AnimatePresence>
+                  {showNotifications && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowNotifications(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute left-full ml-2 top-0 w-80 bg-card border border-border shadow-2xl rounded z-50 overflow-hidden"
+                      >
+                        <div className="p-4 border-b border-border">
+                          <h3 className="font-semibold text-foreground">Notifications</h3>
+                        </div>
+                        <div className="max-h-80 overflow-y-auto">
+                          {notifications.length === 0 ? (
+                            <div className="p-8 text-center">
+                              <Bell className="w-10 h-10 text-muted-foreground mx-auto mb-3 opacity-50" />
+                              <p className="text-muted-foreground text-sm">No notifications yet</p>
+                              <p className="text-muted-foreground text-xs mt-1">Trade activity will appear here</p>
+                            </div>
+                          ) : (
+                            notifications.map((notification) => (
+                              <div
+                                key={notification.id}
+                                className="p-4 border-b border-border hover:bg-muted transition cursor-pointer"
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className="mt-1">{notification.type === 'success' && '✓'}</div>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-foreground">{notification.title}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">{notification.message}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+              
+              {/* Search */}
+              <button
+                onClick={() => {
+                  // Trigger global search modal
+                  const searchButton = document.querySelector('[data-search-trigger]') as HTMLButtonElement;
+                  searchButton?.click();
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 bg-card border border-border rounded text-muted-foreground hover:text-foreground hover:border-muted-foreground transition"
               >
-                FinX
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </Link>
-        {isMobile && (
-          <button onClick={closeMobileMenu} className="p-2 text-muted-foreground hover:text-foreground">
-            <X className="w-5 h-5" />
-          </button>
-        )}
+                <Search className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm font-medium">Search assets...</span>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Toggle button (desktop only) */}

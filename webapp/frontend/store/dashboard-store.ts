@@ -116,7 +116,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   watchlist: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('watchlist') || '["AAPL", "GOOGL", "MSFT", "TSLA", "NVDA"]') : [],
   selectedTimeframe: '1D',
   selectedSymbol: 'AAPL',
-  sidebarCollapsed: false,
+  sidebarCollapsed: true,
   mobileMenuOpen: false,
   chatOpen: false,
   chatMessages: [],

@@ -43,7 +43,7 @@ jobs:
       - name: Build and Push Backend Image
         run: |
           IMAGE_NAME=$REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$BACKEND_SERVICE:${{ github.sha }}
-          docker build -f webapp/backend/Dockerfile -t $IMAGE_NAME .
+          docker build --no-cache -f webapp/backend/Dockerfile -t $IMAGE_NAME .
           docker tag $IMAGE_NAME $REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$BACKEND_SERVICE:latest
           docker push $IMAGE_NAME
           docker push $REGION-docker.pkg.dev/$PROJECT_ID/finx-docker-repo/$BACKEND_SERVICE:latest

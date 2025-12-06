@@ -249,10 +249,9 @@ jobs:
       # Backend Deployment
       - name: Build and Push Backend Image
         run: |
-          cd webapp/backend
           IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/finx-docker-repo/${{ env.BACKEND_SERVICE }}:${{ github.sha }}
           LATEST=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/finx-docker-repo/${{ env.BACKEND_SERVICE }}:latest
-          docker build -t $IMAGE -t $LATEST .
+          docker build --no-cache -f webapp/backend/Dockerfile -t $IMAGE -t $LATEST .
           docker push $IMAGE
           docker push $LATEST
       

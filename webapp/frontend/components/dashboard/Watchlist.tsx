@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, TrendingUp, TrendingDown, X, Plus, ExternalLink } from 'lucide-react';
+import { Star, TrendingUp, TrendingDown, X, Plus, ExternalLink, Eye } from 'lucide-react';
 import { useDashboardStore } from '@/store/dashboard-store';
 import StockLogo from '@/components/ui/StockLogo';
 

@@ -36,6 +36,9 @@ export interface Recommendation {
   dollars: number;
   shares: number;
   current_price: number;
+  confidence?: number;
+  predicted_return_pct?: number;
+  last_updated?: string;
 }
 
 export interface BotStatus {

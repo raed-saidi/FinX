@@ -28,6 +28,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Build the application
 RUN npm run build
 
+# Create public directory if it doesn't exist
+RUN mkdir -p public
+
 # Production image
 FROM node:20.18.1-alpine3.20 AS runner
 

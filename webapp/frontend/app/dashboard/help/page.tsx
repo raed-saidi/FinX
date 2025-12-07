@@ -100,7 +100,7 @@ export default function HelpPage() {
               />
             </div>
             <h3 className="text-foreground font-semibold mb-1">{feature.title}</h3>
-            <p className="text-muted text-sm">{feature.description}</p>
+            <p className="text-foreground/70 text-sm">{feature.description}</p>
           </div>
         ))}
       </motion.div>
@@ -110,11 +110,11 @@ export default function HelpPage() {
         <div className="p-6 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-neutral-500/20 rounded flex items-center justify-center">
-              <HelpCircle className="w-5 h-5 text-muted-foreground" />
+              <HelpCircle className="w-5 h-5 text-foreground/60" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-foreground">Frequently Asked Questions</h2>
-              <p className="text-muted text-sm">Common questions about the platform</p>
+              <p className="text-foreground/70 text-sm">Common questions about the platform</p>
             </div>
           </div>
         </div>
@@ -124,9 +124,9 @@ export default function HelpPage() {
             <details key={index} className="group">
               <summary className="flex items-center justify-between p-6 cursor-pointer hover:bg-card-secondary/50 transition">
                 <span className="text-foreground font-medium">{faq.question}</span>
-                <ChevronRight className="w-5 h-5 text-muted group-open:rotate-90 transition-transform" />
+                <ChevronRight className="w-5 h-5 text-foreground/50 group-open:rotate-90 transition-transform" />
               </summary>
-              <div className="px-6 pb-6 text-muted-foreground">{faq.answer}</div>
+              <div className="px-6 pb-6 text-foreground/80">{faq.answer}</div>
             </details>
           ))}
         </div>
@@ -140,7 +140,7 @@ export default function HelpPage() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground">Getting Started</h2>
-            <p className="text-muted text-sm">Quick guide to start trading</p>
+            <p className="text-foreground/70 text-sm">Quick guide to start trading</p>
           </div>
         </div>
 
@@ -151,7 +151,7 @@ export default function HelpPage() {
             </div>
             <div>
               <h4 className="text-foreground font-medium">Check AI Recommendations</h4>
-              <p className="text-muted-foreground text-sm">View the AI-generated signals on the Dashboard. LONG signals indicate potential buying opportunities.</p>
+              <p className="text-foreground/80 text-sm">View the AI-generated signals on the Dashboard. LONG signals indicate potential buying opportunities.</p>
             </div>
           </div>
 
@@ -161,7 +161,7 @@ export default function HelpPage() {
             </div>
             <div>
               <h4 className="text-foreground font-medium">Use Smart Invest</h4>
-              <p className="text-muted-foreground text-sm">Click "Smart Invest" to automatically allocate funds across recommended stocks based on AI signals.</p>
+              <p className="text-foreground/80 text-sm">Click "Smart Invest" to automatically allocate funds across recommended stocks based on AI signals.</p>
             </div>
           </div>
 
@@ -171,7 +171,7 @@ export default function HelpPage() {
             </div>
             <div>
               <h4 className="text-foreground font-medium">Start the Trading Bot</h4>
-              <p className="text-muted-foreground text-sm">Enable the AI bot from the Trading Bot page to automate trades based on real-time signals.</p>
+              <p className="text-foreground/80 text-sm">Enable the AI bot from the Trading Bot page to automate trades based on real-time signals.</p>
             </div>
           </div>
 
@@ -181,7 +181,7 @@ export default function HelpPage() {
             </div>
             <div>
               <h4 className="text-foreground font-medium">Monitor Performance</h4>
-              <p className="text-muted-foreground text-sm">Track your portfolio's performance, view order history, and analyze equity curves on the Dashboard.</p>
+              <p className="text-foreground/80 text-sm">Track your portfolio's performance, view order history, and analyze equity curves on the Dashboard.</p>
             </div>
           </div>
         </div>
@@ -194,13 +194,13 @@ export default function HelpPage() {
           className="flex items-center gap-4 p-5 bg-card border border-border rounded hover:border-neutral-500/30 transition"
         >
           <div className="w-12 h-12 bg-neutral-500/20 rounded flex items-center justify-center">
-            <Book className="w-6 h-6 text-muted-foreground" />
+            <Book className="w-6 h-6 text-foreground/60" />
           </div>
           <div>
             <h4 className="text-foreground font-medium">Documentation</h4>
-            <p className="text-muted text-sm">Read the full guide</p>
+            <p className="text-foreground/70 text-sm">Read the full guide</p>
           </div>
-          <ExternalLink className="w-4 h-4 text-muted ml-auto" />
+          <ExternalLink className="w-4 h-4 text-foreground/50 ml-auto" />
         </a>
 
         <a
@@ -212,9 +212,9 @@ export default function HelpPage() {
           </div>
           <div>
             <h4 className="text-foreground font-medium">Chat Support</h4>
-            <p className="text-muted text-sm">Ask the AI assistant</p>
+            <p className="text-foreground/70 text-sm">Ask the AI assistant</p>
           </div>
-          <ExternalLink className="w-4 h-4 text-muted ml-auto" />
+          <ExternalLink className="w-4 h-4 text-foreground/50 ml-auto" />
         </a>
 
         <a
@@ -226,9 +226,9 @@ export default function HelpPage() {
           </div>
           <div>
             <h4 className="text-foreground font-medium">Contact Us</h4>
-            <p className="text-muted text-sm">Get in touch</p>
+            <p className="text-foreground/70 text-sm">Get in touch</p>
           </div>
-          <ExternalLink className="w-4 h-4 text-muted ml-auto" />
+          <ExternalLink className="w-4 h-4 text-foreground/50 ml-auto" />
         </a>
       </motion.div>
     </motion.div>

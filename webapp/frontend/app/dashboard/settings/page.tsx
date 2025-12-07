@@ -219,13 +219,13 @@ export default function SettingsPage() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground">Appearance</h2>
-            <p className="text-muted text-sm">Customize how the app looks</p>
+            <p className="text-foreground/70 text-sm">Customize how the app looks</p>
           </div>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="text-muted-foreground text-sm mb-3 block">Theme</label>
+            <label className="text-foreground/70 text-sm mb-3 block">Theme</label>
             <div className="flex gap-3">
               {[
                 { value: 'dark', icon: Moon, label: 'Dark' },
@@ -257,17 +257,17 @@ export default function SettingsPage() {
       >
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-gray-500/20 rounded flex items-center justify-center">
-            <Clock className="w-5 h-5 text-muted-foreground" />
+            <Clock className="w-5 h-5 text-foreground/60" />
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground">Data & Refresh</h2>
-            <p className="text-muted text-sm">Control how often data updates</p>
+            <p className="text-foreground/70 text-sm">Control how often data updates</p>
           </div>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="text-muted-foreground text-sm mb-3 block">
+            <label className="text-foreground/70 text-sm mb-3 block">
               Refresh Rate: {settings.refreshRate / 1000}s
             </label>
             <input
@@ -279,7 +279,7 @@ export default function SettingsPage() {
               onChange={(e) => updateSettings('refreshRate', parseInt(e.target.value))}
               className="w-full h-2 bg-card-secondary rounded appearance-none cursor-pointer accent-gray-500"
             />
-            <div className="flex justify-between text-xs text-muted mt-2">
+            <div className="flex justify-between text-xs text-foreground/60 mt-2">
               <span>1s (Real-time)</span>
               <span>30s (Battery saver)</span>
             </div>
@@ -298,7 +298,7 @@ export default function SettingsPage() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground">Notifications</h2>
-            <p className="text-muted text-sm">Choose what alerts you receive</p>
+            <p className="text-foreground/70 text-sm">Choose what alerts you receive</p>
           </div>
         </div>
 
@@ -311,10 +311,10 @@ export default function SettingsPage() {
           ].map(({ key, label, desc, icon: Icon }) => (
             <div key={key} className="flex items-center justify-between p-4 bg-card-secondary rounded">
               <div className="flex items-center gap-3">
-                {Icon && <Icon className="w-5 h-5 text-muted-foreground" />}
+                {Icon && <Icon className="w-5 h-5 text-foreground/60" />}
                 <div>
                   <p className="text-foreground font-medium">{label}</p>
-                  <p className="text-muted text-sm">{desc}</p>
+                  <p className="text-foreground/70 text-sm">{desc}</p>
                 </div>
               </div>
               <button
@@ -349,7 +349,7 @@ export default function SettingsPage() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground">Trading Preferences</h2>
-            <p className="text-muted text-sm">Configure your trading behavior</p>
+            <p className="text-foreground/70 text-sm">Configure your trading behavior</p>
           </div>
         </div>
 
@@ -357,7 +357,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between p-4 bg-card-secondary rounded">
             <div>
               <p className="text-foreground font-medium">Confirm Trades</p>
-              <p className="text-muted text-sm">Show confirmation before executing trades</p>
+              <p className="text-foreground/70 text-sm">Show confirmation before executing trades</p>
             </div>
             <button
               onClick={() => updateNestedSettings('trading', 'confirmTrades', !settings.trading.confirmTrades)}
@@ -376,7 +376,7 @@ export default function SettingsPage() {
           <div className="p-4 bg-card-secondary rounded">
             <label className="text-foreground font-medium block mb-2">Default Investment Amount</label>
             <div className="flex items-center gap-3">
-              <span className="text-muted-foreground">$</span>
+              <span className="text-foreground/70">$</span>
               <input
                 type="number"
                 min={5}
@@ -441,29 +441,29 @@ export default function SettingsPage() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground">Account Status</h2>
-            <p className="text-muted text-sm">Your connection and account info</p>
+            <p className="text-foreground/70 text-sm">Your connection and account info</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 bg-card-secondary rounded">
-            <p className="text-muted-foreground text-sm">Alpaca Connection</p>
+            <p className="text-foreground/70 text-sm">Alpaca Connection</p>
             <p className={`text-lg font-semibold ${botStatus?.alpaca_connected ? 'text-emerald-400' : 'text-red-400'}`}>
               {botStatus?.alpaca_connected ? 'Connected' : 'Disconnected'}
             </p>
           </div>
           <div className="p-4 bg-card-secondary rounded">
-            <p className="text-muted-foreground text-sm">Account Type</p>
+            <p className="text-foreground/70 text-sm">Account Type</p>
             <p className="text-lg font-semibold text-amber-400">Paper Trading</p>
           </div>
           <div className="p-4 bg-card-secondary rounded">
-            <p className="text-muted-foreground text-sm">Bot Status</p>
-            <p className={`text-lg font-semibold ${botStatus?.running ? 'text-emerald-400' : 'text-muted-foreground'}`}>
+            <p className="text-foreground/70 text-sm">Bot Status</p>
+            <p className={`text-lg font-semibold ${botStatus?.running ? 'text-emerald-400' : 'text-foreground/70'}`}>
               {botStatus?.running ? 'Running' : 'Stopped'}
             </p>
           </div>
           <div className="p-4 bg-card-secondary rounded">
-            <p className="text-muted-foreground text-sm">Strategy</p>
+            <p className="text-foreground/70 text-sm">Strategy</p>
             <p className="text-lg font-semibold text-foreground">{botStatus?.strategy || 'XGBoost'}</p>
           </div>
         </div>

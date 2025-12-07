@@ -40,15 +40,36 @@ export default function StressTestPage() {
         </div>
       </div>
 
+      {/* Under Construction Banner */}
+      <div className="p-6 rounded-lg bg-amber-500/10 border border-amber-500/30">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <Shield className="w-6 h-6 text-amber-400" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-foreground mb-2">🚧 Under Construction</h3>
+            <p className="text-foreground mb-3">
+              This advanced stress testing module is currently under development. Coming soon:
+            </p>
+            <ul className="text-sm text-muted-foreground space-y-1.5 ml-4">
+              <li>• Value at Risk (VaR) calculations</li>
+              <li>• Monte Carlo simulations</li>
+              <li>• Historical stress scenarios</li>
+              <li>• Tail risk analysis</li>
+              <li>• Correlation breakdowns</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {/* Info Banner */}
-      <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
+      <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20 opacity-50">
         <div className="flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
           <div>
-            <h3 className="font-medium text-foreground">Risk Management Suite</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              This module performs comprehensive stress testing including Value at Risk (VaR) calculations, 
-              Monte Carlo simulations, historical stress scenarios, and tail risk analysis to help you 
+            <h3 className="font-medium text-white">Risk Management Suite (Preview)</h3>
+            <p className="text-sm text-white/70 mt-1">
+              This module will perform comprehensive stress testing to help you 
               understand potential portfolio risks under various market conditions.
             </p>
           </div>

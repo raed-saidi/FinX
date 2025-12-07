@@ -255,7 +255,7 @@ export default function StockDetailPage() {
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-card border border-border rounded p-4">
-              <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+              <div className="flex items-center gap-2 text-foreground/70 text-sm mb-1">
                 <Activity className="w-4 h-4" />
                 Open
               </div>
@@ -265,7 +265,7 @@ export default function StockDetailPage() {
             </div>
             
             <div className="bg-card border border-border rounded p-4">
-              <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+              <div className="flex items-center gap-2 text-foreground/70 text-sm mb-1">
                 <TrendingUp className="w-4 h-4" />
                 High
               </div>
@@ -275,7 +275,7 @@ export default function StockDetailPage() {
             </div>
             
             <div className="bg-card border border-border rounded p-4">
-              <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+              <div className="flex items-center gap-2 text-foreground/70 text-sm mb-1">
                 <TrendingDown className="w-4 h-4" />
                 Low
               </div>
@@ -285,7 +285,7 @@ export default function StockDetailPage() {
             </div>
             
             <div className="bg-card border border-border rounded p-4">
-              <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+              <div className="flex items-center gap-2 text-foreground/70 text-sm mb-1">
                 <BarChart3 className="w-4 h-4" />
                 Volume
               </div>

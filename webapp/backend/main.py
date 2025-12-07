@@ -28,16 +28,19 @@ load_dotenv()
 
 # Groq Client
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+print(f"🔍 GROQ_API_KEY loaded: {len(GROQ_API_KEY)} chars, value: {GROQ_API_KEY[:20]}..." if GROQ_API_KEY else "🔍 GROQ_API_KEY: NOT SET")
 groq_client = None
 if GROQ_API_KEY and len(GROQ_API_KEY) > 10:  # Valid API key check
     try:
         from groq import Groq
         groq_client = Groq(api_key=GROQ_API_KEY)
-        print("✓ Groq client initialized")
+        print("✓ Groq client initialized successfully!")
     except Exception as e:
         print(f"⚠ Groq client initialization failed: {e}")
+        import traceback
+        traceback.print_exc()
 else:
-    print("⚠ GROQ_API_KEY not configured")
+    print(f"⚠ GROQ_API_KEY not configured properly (length: {len(GROQ_API_KEY)})")
 
 # Alpaca Paper Trading Configuration
 ALPACA_API_KEY = os.getenv("ALPACA_API_KEY", "")

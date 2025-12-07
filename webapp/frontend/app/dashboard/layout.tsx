@@ -36,7 +36,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         style={{ marginLeft: mainMargin }}
       >
         {/* Market Ticker - At the top */}
-        <div className="fixed top-0 right-0 z-30 transition-all duration-300" style={{ left: mainMargin }}>
+        <div className="fixed top-0 left-0 right-0 z-30 transition-all duration-300" style={{ paddingLeft: mainMargin }}>
           <MarketTicker height={36} speed={100} />
         </div>
         {/* pt-[100px] = ticker (36px) + spacing (64px) */}

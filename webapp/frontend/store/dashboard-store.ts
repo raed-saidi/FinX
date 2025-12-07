@@ -266,6 +266,18 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   // API Actions
   fetchPortfolio: async () => {
     set((state) => ({ loadingStates: { ...state.loadingStates, portfolio: true } }));
+    
+    // Mock portfolio data for demo
+    const mockPositions: Position[] = [
+      { symbol: 'TSLA', shares: 15, avg_price: 245.50, current_price: 278.78, value: 4181.70, pnl: 499.20, pnl_pct: 13.56 },
+      { symbol: 'MSFT', shares: 8, avg_price: 420.00, current_price: 445.32, value: 3562.56, pnl: 202.56, pnl_pct: 6.03 },
+      { symbol: 'NVDA', shares: 12, avg_price: 485.20, current_price: 512.45, value: 6149.40, pnl: 327.00, pnl_pct: 5.62 },
+      { symbol: 'GOOGL', shares: 20, avg_price: 175.80, current_price: 189.54, value: 3790.80, pnl: 274.80, pnl_pct: 7.82 },
+    ];
+    
+    const mockTotal = mockPositions.reduce((sum, p) => sum + p.value, 0);
+    const mockCash = 25000;
+    
     try {
       const token = localStorage.getItem('token');
       
@@ -284,14 +296,54 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       
       if (res.ok) {
         const data = await res.json();
+        
+        // Merge real Alpaca positions with mock positions
+        const realPositions = data.positions || [];
+        const allPositions = [...mockPositions, ...realPositions];
+        
+        // Calculate combined totals
+        const realValue = realPositions.reduce((sum: number, p: Position) => sum + (p.value || 0), 0);
+        const combinedTotal = mockTotal + realValue;
+        const combinedCash = (data.cash || 0) + mockCash;
+        
         set({ 
-          portfolio: data,
-          totalBalance: data.total_value || 0,
-          availableCash: data.cash || 0,
+          portfolio: {
+            ...data,
+            positions: allPositions,
+            total_value: combinedTotal + combinedCash,
+            cash: combinedCash,
+          },
+          totalBalance: combinedTotal + combinedCash,
+          availableCash: combinedCash,
+        });
+      } else {
+        // If API fails, use mock data only
+        set({ 
+          portfolio: {
+            positions: mockPositions,
+            total_value: mockTotal + mockCash,
+            cash: mockCash,
+            total_pnl: mockPositions.reduce((sum, p) => sum + (p.pnl || 0), 0),
+            total_pnl_pct: (mockPositions.reduce((sum, p) => sum + (p.pnl || 0), 0) / mockTotal) * 100,
+          },
+          totalBalance: mockTotal + mockCash,
+          availableCash: mockCash,
         });
       }
     } catch (error) {
       console.error('Failed to fetch portfolio:', error);
+      // On error, use mock data
+      set({ 
+        portfolio: {
+          positions: mockPositions,
+          total_value: mockTotal + mockCash,
+          cash: mockCash,
+          total_pnl: mockPositions.reduce((sum, p) => sum + (p.pnl || 0), 0),
+          total_pnl_pct: (mockPositions.reduce((sum, p) => sum + (p.pnl || 0), 0) / mockTotal) * 100,
+        },
+        totalBalance: mockTotal + mockCash,
+        availableCash: mockCash,
+      });
     } finally {
       set((state) => ({ loadingStates: { ...state.loadingStates, portfolio: false } }));
     }

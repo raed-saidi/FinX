@@ -520,14 +520,14 @@ export default function DashboardPage() {
                 <h3 className="text-lg font-semibold text-foreground">Price Chart</h3>
               </div>
               
-              {/* Stock Selector */}
+              {/* Stock Selector - Show all available stocks */}
               <select
                 value={selectedStock}
                 onChange={(e) => setSelectedStock(e.target.value)}
                 className="bg-card border border-border text-foreground px-4 py-2 rounded focus:outline-none focus:border-gray-500"
               >
-                {recommendations.map((rec) => (
-                  <option key={rec.asset} value={rec.asset}>{rec.asset}</option>
+                {AVAILABLE_STOCKS.map((symbol) => (
+                  <option key={symbol} value={symbol}>{symbol}</option>
                 ))}
               </select>
             </div>
@@ -553,7 +553,7 @@ export default function DashboardPage() {
               <p className="text-muted-foreground text-xs mt-1">Based on XGBoost Walk-Forward Model</p>
             </div>
 
-            <div className="p-4 pb-6 space-y-2 max-h-[440px] overflow-y-auto">
+            <div className="p-3 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(480px - 70px)' }}>
               {loadingStates.recommendations ? (
                 <>
                   {[1, 2, 3, 4, 5].map((i) => (

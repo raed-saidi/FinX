@@ -48,7 +48,7 @@ const TickerItemDisplay = memo(function TickerItemDisplay({
   return (
     <div className="flex items-center gap-3 px-6 py-2 whitespace-nowrap">
       {/* Symbol */}
-      <span className="font-bold text-white/90 tracking-wider text-sm">
+      <span className="font-bold text-foreground/90 tracking-wider text-sm">
         {item.symbol}
       </span>
       
@@ -59,10 +59,7 @@ const TickerItemDisplay = memo(function TickerItemDisplay({
           initial={hasChanged ? { scale: 1.1, opacity: 0.7 } : false}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="font-mono text-white/80 text-sm"
-          style={{
-            textShadow: '0 0 10px rgba(255,255,255,0.3)',
-          }}
+          className="font-mono text-foreground/80 text-sm"
         >
           {item.type === 'forex' 
             ? item.price.toFixed(3) 
@@ -94,7 +91,7 @@ const TickerItemDisplay = memo(function TickerItemDisplay({
       </AnimatePresence>
       
       {/* Separator dot */}
-      <span className="text-white/20 mx-2">•</span>
+      <span className="text-foreground/20 mx-2">•</span>
     </div>
   );
 });
@@ -193,11 +190,11 @@ export default function MarketTicker({
   if (isLoading || displayData.length === 0) {
     return (
       <div 
-        className={`relative overflow-hidden bg-[#0a0a0a] border-b border-gray-800/50 ${className}`}
+        className={`relative overflow-hidden bg-background border-b border-border ${className}`}
         style={{ height }}
       >
         <div className="flex items-center justify-center h-full">
-          <span className="text-gray-500 text-sm animate-pulse">Loading live market data...</span>
+          <span className="text-muted-foreground text-sm animate-pulse">Loading live market data...</span>
         </div>
       </div>
     );
@@ -224,14 +221,14 @@ export default function MarketTicker({
       `}</style>
       
       <div 
-        className={`relative overflow-hidden bg-[#0a0a0a] border-b border-gray-800/50 ${className}`}
+        className={`relative overflow-hidden bg-background border-b border-border ${className}`}
         style={{ height }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
         {/* Gradient overlays for fade effect */}
-        <div className="absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-[#0a0a0a] to-transparent pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-l from-[#0a0a0a] to-transparent pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 z-10 bg-gradient-to-l from-background to-transparent pointer-events-none" />
         
         {/* Scrolling container */}
         <div 

@@ -229,6 +229,7 @@ export default function SecuritySettingsPage() {
       initial="hidden"
       animate="visible"
       className="space-y-6 max-w-4xl mx-auto"
+      style={{ paddingTop: '40px' }}
     >
       {/* Header */}
       <motion.div variants={itemVariants}>

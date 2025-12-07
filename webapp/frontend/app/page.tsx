@@ -25,12 +25,13 @@ import MarketTicker from '@/components/ui/MarketTicker';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Auth Modal Component
-function AuthModal({ isOpen, onClose, onSuccess }: { 
+function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'signin' }: { 
   isOpen: boolean; 
   onClose: () => void;
   onSuccess: () => void;
+  initialMode?: 'signin' | 'register';
 }) {
-  const [isRegister, setIsRegister] = useState(false);
+  const [isRegister, setIsRegister] = useState(initialMode === 'register');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -39,6 +40,19 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
   const [requires2FA, setRequires2FA] = useState(false);
   const [tempToken, setTempToken] = useState('');
   const [totpCode, setTotpCode] = useState('');
+
+  // Reset form state when modal opens with new mode
+  useEffect(() => {
+    if (isOpen) {
+      setIsRegister(initialMode === 'register');
+      setError('');
+      setEmail('');
+      setPassword('');
+      setName('');
+      setTotpCode('');
+      setRequires2FA(false);
+    }
+  }, [isOpen, initialMode]);
 
   if (!isOpen) return null;
 
@@ -73,7 +87,14 @@ function AuthModal({ isOpen, onClose, onSuccess }: {
         } catch {
           errorData = { detail: errorText || 'Authentication failed' };
         }
-        throw new Error(errorData.detail || 'Authentication failed');
+        
+        // Handle validation errors from FastAPI
+        if (errorData.detail && Array.isArray(errorData.detail)) {
+          const messages = errorData.detail.map((err: any) => err.msg).join(', ');
+          throw new Error(messages);
+        }
+        
+        throw new Error(typeof errorData.detail === 'string' ? errorData.detail : 'Authentication failed');
       }
 
       const data = await res.json();
@@ -316,6 +337,7 @@ function StatCard({ value, label, suffix }: { value: string; label: string; suff
 export default function LandingPage() {
   const router = useRouter();
   const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'register'>('signin');
 
   const handleAuthSuccess = () => {
     setShowAuth(false);
@@ -354,6 +376,7 @@ export default function LandingPage() {
         isOpen={showAuth} 
         onClose={() => setShowAuth(false)}
         onSuccess={handleAuthSuccess}
+        initialMode={authMode}
       />
 
       {/* Background Elements */}
@@ -364,11 +387,11 @@ export default function LandingPage() {
       </div>
 
       {/* Navbar */}
-      <nav id="landing-navbar" className="fixed top-0 left-0 right-0 z-50 bg-[#06080F]/90 backdrop-blur-xl border-b border-[#1a2332] transition-transform duration-300">
+      <nav id="landing-navbar" className={`fixed top-0 left-0 right-0 z-50 bg-[#06080F]/90 backdrop-blur-xl border-b border-[#1a2332] transition-all duration-300 ${showAuth ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
+              <LineChart className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-xl text-white">FinX</span>
           </div>
@@ -381,13 +404,13 @@ export default function LandingPage() {
           
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => setShowAuth(true)}
+              onClick={() => { setAuthMode('signin'); setShowAuth(true); }}
               className="text-gray-400 hover:text-white transition font-medium"
             >
               Sign In
             </button>
             <button 
-              onClick={() => setShowAuth(true)}
+              onClick={() => { setAuthMode('register'); setShowAuth(true); }}
               className="px-5 py-2.5 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all"
             >
               Get Started
@@ -478,9 +501,9 @@ export default function LandingPage() {
       <section id="performance" className="py-20 px-6 border-y border-[#1a2332]">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            <StatCard value="47.5" suffix="%" label="Annual Return" />
-            <StatCard value="1.93" suffix="x" label="Sharpe Ratio" />
-            <StatCard value="75.2" suffix="%" label="Win Rate" />
+            <StatCard value="29.9" suffix="%" label="Cumulative Return" />
+            <StatCard value="5.47" suffix="x" label="Sharpe Ratio" />
+            <StatCard value="12.3" suffix="%" label="Max Drawdown" />
             <StatCard value="15" suffix="+" label="Assets Tracked" />
           </div>
         </div>

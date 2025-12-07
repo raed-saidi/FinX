@@ -266,6 +266,7 @@ export default function MarketsPage() {
       initial="hidden"
       animate="visible"
       className="space-y-6"
+      style={{ paddingTop: '40px' }}
     >
       {/* Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">

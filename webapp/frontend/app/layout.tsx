@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { ThemeProvider } from '@/components/theme'
 
 export const metadata: Metadata = {
-  title: 'Smart Investment AI',
+  title: 'FinX',
   description: 'AI-Powered Portfolio Management Platform',
 }
 

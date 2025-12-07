@@ -216,6 +216,7 @@ export default function DashboardPage() {
         initial="hidden"
         animate="visible"
         className="space-y-6"
+        style={{ paddingTop: '40px' }}
       >
         {/* Header with Actions */}
         <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-between gap-4">

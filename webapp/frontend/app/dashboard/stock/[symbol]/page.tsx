@@ -157,6 +157,7 @@ export default function StockDetailPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="space-y-6"
+      style={{ paddingTop: '40px' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between">

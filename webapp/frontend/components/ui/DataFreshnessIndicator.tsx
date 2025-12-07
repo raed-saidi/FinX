@@ -102,7 +102,7 @@ export default function DataFreshnessIndicator({
         </span>
         <span className={`${current.text} text-sm font-medium`}>{current.label}</span>
         {showLabel && (
-          <span className="text-muted text-xs">{timeAgo}</span>
+          <span className="text-white/70 text-xs">{timeAgo}</span>
         )}
       </div>
       

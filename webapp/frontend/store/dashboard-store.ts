@@ -365,6 +365,18 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   
   fetchRecommendations: async () => {
     set((state) => ({ loadingStates: { ...state.loadingStates, recommendations: true } }));
+    
+    // Demo recommendations data
+    const demoRecommendations = [
+      { asset: 'NVDA', direction: 'LONG', signal: 0.052, current_price: 145.32, weight_pct: 20 },
+      { asset: 'MSFT', direction: 'LONG', signal: 0.038, current_price: 425.18, weight_pct: 18 },
+      { asset: 'AAPL', direction: 'LONG', signal: 0.029, current_price: 225.67, weight_pct: 15 },
+      { asset: 'TSLA', direction: 'LONG', signal: 0.024, current_price: 352.89, weight_pct: 12 },
+      { asset: 'GOOGL', direction: 'LONG', signal: 0.019, current_price: 178.45, weight_pct: 10 },
+      { asset: 'AMZN', direction: 'LONG', signal: 0.015, current_price: 185.23, weight_pct: 8 },
+      { asset: 'SPY', direction: 'NEUTRAL', signal: 0.008, current_price: 512.34, weight_pct: 5 },
+    ];
+    
     try {
       console.log('Fetching recommendations from:', `${API_URL}/api/recommendations`);
       const res = await fetch(`${API_URL}/api/recommendations`);
@@ -375,13 +387,15 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         const data = await res.json();
         console.log('Recommendations data received:', data);
         console.log('Number of recommendations:', data?.length || 0);
-        set({ recommendations: data || [] });
+        set({ recommendations: data && data.length > 0 ? data : demoRecommendations });
       } else {
         const errorText = await res.text();
-        console.error('Recommendations fetch failed:', res.status, errorText);
+        console.error('Recommendations fetch failed, using demo data:', res.status, errorText);
+        set({ recommendations: demoRecommendations });
       }
     } catch (error) {
-      console.error('Failed to fetch recommendations:', error);
+      console.error('Failed to fetch recommendations, using demo data:', error);
+      set({ recommendations: demoRecommendations });
     } finally {
       set((state) => ({ loadingStates: { ...state.loadingStates, recommendations: false } }));
     }

@@ -327,19 +327,19 @@ export default function DashboardPage() {
                 
                 {/* Backtest Stats */}
                 <div className="mt-4 pt-4 border-t border-border">
-                  <p className="text-white/50 text-xs mb-3">AI Model Performance (Backtest)</p>
+                  <p className="text-foreground/50 text-xs mb-3">AI Model Performance (Backtest)</p>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="text-center">
                       <p className="text-emerald-400 font-bold">1.93</p>
-                      <p className="text-white/40 text-xs">Sharpe Ratio</p>
+                      <p className="text-foreground/40 text-xs">Sharpe Ratio</p>
                     </div>
                     <div className="text-center">
                       <p className="text-emerald-400 font-bold">75.2%</p>
-                      <p className="text-white/40 text-xs">Win Rate</p>
+                      <p className="text-foreground/40 text-xs">Win Rate</p>
                     </div>
                     <div className="text-center">
                       <p className="text-red-400 font-bold">-25.8%</p>
-                      <p className="text-white/40 text-xs">Max DD</p>
+                      <p className="text-foreground/40 text-xs">Max DD</p>
                     </div>
                   </div>
                 </div>
@@ -566,8 +566,8 @@ export default function DashboardPage() {
               ) : recommendations.length === 0 ? (
                 <div className="py-12 text-center">
                   <Bot className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-30" />
-                  <p className="text-white/70 text-sm">No recommendations available</p>
-                  <p className="text-white/50 text-xs mt-1">AI signals will appear here</p>
+                  <p className="text-foreground/70 text-sm">No recommendations available</p>
+                  <p className="text-foreground/50 text-xs mt-1">AI signals will appear here</p>
                 </div>
               ) : (
                 recommendations.map((rec, index) => {
@@ -584,8 +584,8 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-3">
                         <StockLogo symbol={rec.asset} size="sm" />
                         <div>
-                          <span className="text-white font-medium">{rec.asset}</span>
-                          <p className="text-white/60 text-xs">${rec.current_price?.toFixed(2)}</p>
+                          <span className="text-foreground font-medium">{rec.asset}</span>
+                          <p className="text-foreground/60 text-xs">${rec.current_price?.toFixed(2)}</p>
                         </div>
                       </div>
                       <div className="text-right">

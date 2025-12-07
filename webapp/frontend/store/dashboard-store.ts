@@ -366,15 +366,15 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   fetchRecommendations: async () => {
     set((state) => ({ loadingStates: { ...state.loadingStates, recommendations: true } }));
     
-    // Demo recommendations data
-    const demoRecommendations = [
-      { asset: 'NVDA', direction: 'LONG', signal: 0.052, current_price: 145.32, weight_pct: 20 },
-      { asset: 'MSFT', direction: 'LONG', signal: 0.038, current_price: 425.18, weight_pct: 18 },
-      { asset: 'AAPL', direction: 'LONG', signal: 0.029, current_price: 225.67, weight_pct: 15 },
-      { asset: 'TSLA', direction: 'LONG', signal: 0.024, current_price: 352.89, weight_pct: 12 },
-      { asset: 'GOOGL', direction: 'LONG', signal: 0.019, current_price: 178.45, weight_pct: 10 },
-      { asset: 'AMZN', direction: 'LONG', signal: 0.015, current_price: 185.23, weight_pct: 8 },
-      { asset: 'SPY', direction: 'NEUTRAL', signal: 0.008, current_price: 512.34, weight_pct: 5 },
+    // Demo recommendations data with realistic signals
+    const demoRecommendations: Recommendation[] = [
+      { asset: 'NVDA', direction: 'LONG', signal: 0.052, current_price: 145.32, weight: 0.20, weight_pct: 20, dollars: 100, shares: 0.69, confidence: 0.92 },
+      { asset: 'MSFT', direction: 'LONG', signal: 0.038, current_price: 425.18, weight: 0.18, weight_pct: 18, dollars: 90, shares: 0.21, confidence: 0.88 },
+      { asset: 'AAPL', direction: 'LONG', signal: 0.029, current_price: 225.67, weight: 0.15, weight_pct: 15, dollars: 75, shares: 0.33, confidence: 0.85 },
+      { asset: 'TSLA', direction: 'LONG', signal: 0.024, current_price: 352.89, weight: 0.12, weight_pct: 12, dollars: 60, shares: 0.17, confidence: 0.82 },
+      { asset: 'GOOGL', direction: 'LONG', signal: 0.019, current_price: 178.45, weight: 0.10, weight_pct: 10, dollars: 50, shares: 0.28, confidence: 0.79 },
+      { asset: 'AMZN', direction: 'LONG', signal: 0.015, current_price: 185.23, weight: 0.08, weight_pct: 8, dollars: 40, shares: 0.22, confidence: 0.76 },
+      { asset: 'SPY', direction: 'NEUTRAL', signal: 0.008, current_price: 512.34, weight: 0.05, weight_pct: 5, dollars: 25, shares: 0.05, confidence: 0.72 },
     ];
     
     try {

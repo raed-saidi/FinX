@@ -24,7 +24,9 @@ export interface Portfolio {
   cash: number;
   positions: Position[];
   total_value: number;
-  trades: Trade[];
+  trades?: Trade[];
+  total_pnl?: number;
+  total_pnl_pct?: number;
 }
 
 export interface Recommendation {

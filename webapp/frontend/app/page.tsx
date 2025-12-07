@@ -501,10 +501,10 @@ export default function LandingPage() {
       <section id="performance" className="py-20 px-6 border-y border-[#1a2332]">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            <StatCard value="29.9" suffix="%" label="Cumulative Return" />
-            <StatCard value="5.47" suffix="x" label="Sharpe Ratio" />
-            <StatCard value="12.3" suffix="%" label="Max Drawdown" />
-            <StatCard value="15" suffix="+" label="Assets Tracked" />
+            <StatCard value="353.2" suffix="%" label="Total Return" />
+            <StatCard value="1.93" suffix="" label="Sharpe Ratio" />
+            <StatCard value="25.8" suffix="%" label="Max Drawdown" />
+            <StatCard value="47.5" suffix="%" label="Annual Return" />
           </div>
         </div>
       </section>
@@ -547,7 +547,7 @@ export default function LandingPage() {
             <FeatureCard 
               icon={Brain}
               title="ML Predictions"
-              description="XGBoost models with 75.2% win rate analyze 15 assets, delivering actionable buy/sell signals with confidence scores."
+              description="XGBoost models with 353.2% total return analyze 15 assets, delivering actionable buy/sell signals with confidence scores."
               gradient="bg-gradient-to-br from-blue-600 to-indigo-700"
             />
             <FeatureCard 

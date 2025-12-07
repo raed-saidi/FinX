@@ -29,13 +29,13 @@ const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4'
 
 // Demo/fallback recommendations for when backend is unavailable
 const DEMO_RECOMMENDATIONS = [
-  { asset: 'TSLA', signal: 0.85, weight_pct: 29.76, direction: 'LONG', current_price: 278.78, confidence: 0.92, reasoning: 'Strong momentum with positive technical indicators and AI sentiment analysis.' },
-  { asset: 'MSFT', signal: 0.72, weight_pct: 20.02, direction: 'LONG', current_price: 445.32, confidence: 0.88, reasoning: 'Solid fundamentals and consistent growth trajectory detected by XGBoost model.' },
-  { asset: 'AMZN', signal: 0.65, weight_pct: 16.17, direction: 'LONG', current_price: 225.89, confidence: 0.85, reasoning: 'Cloud services expansion and e-commerce resilience indicate upward trend.' },
-  { asset: 'EFA', signal: 0.48, weight_pct: 11.82, direction: 'LONG', current_price: 89.45, confidence: 0.79, reasoning: 'International diversification with moderate growth potential and stable returns.' },
-  { asset: 'INTC', signal: 0.42, weight_pct: 10.28, direction: 'LONG', current_price: 19.87, confidence: 0.76, reasoning: 'Semiconductor sector recovery signals detected, value opportunity identified.' },
-  { asset: 'GOOGL', signal: 0.38, weight_pct: 6.14, direction: 'LONG', current_price: 189.54, confidence: 0.73, reasoning: 'AI investments and advertising revenue strength support positive outlook.' },
-  { asset: 'QQQ', signal: 0.28, weight_pct: 5.17, direction: 'LONG', current_price: 534.12, confidence: 0.68, reasoning: 'Tech sector ETF providing broad market exposure with moderate signal strength.' },
+  { asset: 'TSLA', signal: 0.85, weight_pct: 29.76, direction: 'LONG' as const, current_price: 278.78, confidence: 0.92, reasoning: 'Strong momentum with positive technical indicators and AI sentiment analysis.', weight: 0.2976, dollars: 0, shares: 0, predicted_return_pct: 8.5, last_updated: new Date().toISOString() },
+  { asset: 'MSFT', signal: 0.72, weight_pct: 20.02, direction: 'LONG' as const, current_price: 445.32, confidence: 0.88, reasoning: 'Solid fundamentals and consistent growth trajectory detected by XGBoost model.', weight: 0.2002, dollars: 0, shares: 0, predicted_return_pct: 7.2, last_updated: new Date().toISOString() },
+  { asset: 'AMZN', signal: 0.65, weight_pct: 16.17, direction: 'LONG' as const, current_price: 225.89, confidence: 0.85, reasoning: 'Cloud services expansion and e-commerce resilience indicate upward trend.', weight: 0.1617, dollars: 0, shares: 0, predicted_return_pct: 6.5, last_updated: new Date().toISOString() },
+  { asset: 'EFA', signal: 0.48, weight_pct: 11.82, direction: 'LONG' as const, current_price: 89.45, confidence: 0.79, reasoning: 'International diversification with moderate growth potential and stable returns.', weight: 0.1182, dollars: 0, shares: 0, predicted_return_pct: 4.8, last_updated: new Date().toISOString() },
+  { asset: 'INTC', signal: 0.42, weight_pct: 10.28, direction: 'LONG' as const, current_price: 19.87, confidence: 0.76, reasoning: 'Semiconductor sector recovery signals detected, value opportunity identified.', weight: 0.1028, dollars: 0, shares: 0, predicted_return_pct: 4.2, last_updated: new Date().toISOString() },
+  { asset: 'GOOGL', signal: 0.38, weight_pct: 6.14, direction: 'LONG' as const, current_price: 189.54, confidence: 0.73, reasoning: 'AI investments and advertising revenue strength support positive outlook.', weight: 0.0614, dollars: 0, shares: 0, predicted_return_pct: 3.8, last_updated: new Date().toISOString() },
+  { asset: 'QQQ', signal: 0.28, weight_pct: 5.17, direction: 'LONG' as const, current_price: 534.12, confidence: 0.68, reasoning: 'Tech sector ETF providing broad market exposure with moderate signal strength.', weight: 0.0517, dollars: 0, shares: 0, predicted_return_pct: 2.8, last_updated: new Date().toISOString() },
 ];
 
 export default function RecommendationsPage() {

@@ -42,6 +42,20 @@ export default function TradingBotPage() {
   const [isToggling, setIsToggling] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [mounted, setMounted] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showMarketClosedModal, setShowMarketClosedModal] = useState(false);
+  const [config, setConfig] = useState({
+    investment_amount: 10000,
+    per_trade_amount: 1000,
+    max_positions: 5,
+    run_duration_hours: 24,
+    trade_frequency_minutes: 60,
+    use_ai_signals: true,
+    min_signal_strength: 0.3,
+    stop_loss_pct: 5.0,
+    take_profit_pct: 10.0,
+  });
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -53,6 +67,13 @@ export default function TradingBotPage() {
     // No auto-refresh - use manual refresh or WebSocket for updates
   }, []);
 
+  useEffect(() => {
+    // Load config from botStatus when available
+    if (botStatus?.config) {
+      setConfig(botStatus.config);
+    }
+  }, [botStatus]);
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await Promise.all([fetchBotStatus(), fetchRecommendations(), fetchBacktest()]);
@@ -61,18 +82,49 @@ export default function TradingBotPage() {
   };
 
   const handleToggleBot = async () => {
+    // Check if trying to start bot - show market closed message
+    if (!botStatus?.running) {
+      setShowMarketClosedModal(true);
+      return;
+    }
+    
+    // Allow stopping the bot
     setIsToggling(true);
     try {
-      if (botStatus?.running) {
-        await stopBot();
-      } else {
-        await startBot();
-      }
+      await stopBot();
       await fetchBotStatus();
     } catch (error) {
-      console.error('Failed to toggle bot:', error);
+      console.error('Failed to stop bot:', error);
     }
     setIsToggling(false);
+  };
+
+  const handleSaveConfig = async () => {
+    setIsSavingConfig(true);
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_URL}/api/bot/config`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify(config)
+      });
+
+      if (response.ok) {
+        await fetchBotStatus();
+        setShowConfigModal(false);
+      } else {
+        console.error('Failed to save config');
+      }
+    } catch (error) {
+      console.error('Error saving config:', error);
+    } finally {
+      setIsSavingConfig(false);
+    }
   };
 
   const containerVariants = {
@@ -354,56 +406,349 @@ export default function TradingBotPage() {
         </motion.div>
       </div>
 
-      {/* Bot Settings */}
+      {/* Bot Configuration */}
       <motion.div
         variants={itemVariants}
         className="bg-card border border-border rounded p-6"
       >
-        <div className="flex items-center gap-3 mb-6">
-          <Settings className="w-5 h-5 text-muted-foreground" />
-          <h3 className="text-lg font-semibold text-foreground">Bot Configuration</h3>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Settings className="w-5 h-5 text-muted-foreground" />
+            <h3 className="text-lg font-semibold text-foreground">Bot Configuration</h3>
+          </div>
+          <button
+            onClick={() => setShowConfigModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition text-sm font-medium"
+          >
+            <Settings className="w-4 h-4" />
+            Configure
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-4">
-            <h4 className="text-gray-400 text-sm font-medium">Strategy</h4>
-            <div className="bg-[#151519] rounded p-4">
-              <p className="text-white font-medium">{botStatus?.strategy || 'XGBoost Walk-Forward'}</p>
-              <p className="text-gray-500 text-sm mt-1">5-day prediction horizon</p>
+            <h4 className="text-muted-foreground text-sm font-medium">Strategy</h4>
+            <div className="bg-card-secondary rounded p-4">
+              <p className="text-foreground font-medium">{botStatus?.strategy || 'XGBoost Walk-Forward'}</p>
+              <p className="text-muted text-sm mt-1">5-day prediction horizon</p>
             </div>
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-gray-400 text-sm font-medium">Trading Mode</h4>
-            <div className="bg-[#151519] rounded p-4">
+            <h4 className="text-muted-foreground text-sm font-medium">Trading Mode</h4>
+            <div className="bg-card-secondary rounded p-4">
               <div className="flex items-center gap-2">
                 <Shield className={`w-5 h-5 ${botStatus?.mode === 'paper' ? 'text-amber-400' : 'text-emerald-400'}`} />
-                <p className="text-white font-medium">{botStatus?.mode === 'paper' ? 'Paper Trading' : 'Live Trading'}</p>
+                <p className="text-foreground font-medium">{botStatus?.mode === 'paper' ? 'Paper Trading' : 'Live Trading'}</p>
               </div>
-              <p className="text-gray-500 text-sm mt-1">No real money at risk</p>
+              <p className="text-muted text-sm mt-1">No real money at risk</p>
             </div>
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-gray-400 text-sm font-medium">Connection Status</h4>
-            <div className="bg-[#151519] rounded p-4">
+            <h4 className="text-muted-foreground text-sm font-medium">Connection Status</h4>
+            <div className="bg-card-secondary rounded p-4">
               <div className="flex items-center gap-2">
                 {botStatus?.alpaca_connected ? (
                   <CheckCircle className="w-5 h-5 text-emerald-400" />
                 ) : (
                   <XCircle className="w-5 h-5 text-red-400" />
                 )}
-                <p className="text-white font-medium">
+                <p className="text-foreground font-medium">
                   {botStatus?.alpaca_connected ? 'Alpaca Connected' : 'Disconnected'}
                 </p>
               </div>
-              <p className="text-gray-500 text-sm mt-1">
+              <p className="text-muted text-sm mt-1">
                 {botStatus?.alpaca_account?.status || 'Paper trading mode'}
               </p>
             </div>
           </div>
         </div>
+
+        {/* Current Configuration Display */}
+        {config && (
+          <div className="mt-6 pt-6 border-t border-border">
+            <h4 className="text-muted-foreground text-sm font-medium mb-4">Current Settings</h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="bg-card-secondary rounded p-3">
+                <p className="text-muted text-xs mb-1">Investment Amount</p>
+                <p className="text-foreground font-semibold">${config.investment_amount.toLocaleString()}</p>
+              </div>
+              <div className="bg-card-secondary rounded p-3">
+                <p className="text-muted text-xs mb-1">Per Trade Amount</p>
+                <p className="text-foreground font-semibold">${config.per_trade_amount.toLocaleString()}</p>
+              </div>
+              <div className="bg-card-secondary rounded p-3">
+                <p className="text-muted text-xs mb-1">Max Positions</p>
+                <p className="text-foreground font-semibold">{config.max_positions}</p>
+              </div>
+              <div className="bg-card-secondary rounded p-3">
+                <p className="text-muted text-xs mb-1">Min Signal Strength</p>
+                <p className="text-foreground font-semibold">{(config.min_signal_strength * 100).toFixed(0)}%</p>
+              </div>
+              <div className="bg-card-secondary rounded p-3">
+                <p className="text-muted text-xs mb-1">Stop Loss</p>
+                <p className="text-red-400 font-semibold">{config.stop_loss_pct}%</p>
+              </div>
+            </div>
+          </div>
+        )}
       </motion.div>
+
+      {/* Configuration Modal */}
+      {showConfigModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-card border border-border rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <div className="p-6 border-b border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Settings className="w-6 h-6 text-blue-400" />
+                  <h2 className="text-xl font-bold text-foreground">Bot Configuration</h2>
+                </div>
+                <button
+                  onClick={() => setShowConfigModal(false)}
+                  className="text-muted-foreground hover:text-foreground transition"
+                >
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Investment Settings */}
+              <div>
+                <h3 className="text-foreground font-semibold mb-4 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-emerald-400" />
+                  Investment Settings
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-muted-foreground mb-2">Total Investment Amount ($)</label>
+                    <input
+                      type="number"
+                      value={config.investment_amount}
+                      onChange={(e) => setConfig({ ...config, investment_amount: parseFloat(e.target.value) })}
+                      className="w-full px-4 py-2 bg-card-secondary border border-border rounded text-foreground focus:border-blue-500 focus:outline-none"
+                      min="1000"
+                      step="1000"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-muted-foreground mb-2">Per Trade Amount ($)</label>
+                    <input
+                      type="number"
+                      value={config.per_trade_amount}
+                      onChange={(e) => setConfig({ ...config, per_trade_amount: parseFloat(e.target.value) })}
+                      className="w-full px-4 py-2 bg-card-secondary border border-border rounded text-foreground focus:border-blue-500 focus:outline-none"
+                      min="100"
+                      step="100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-muted-foreground mb-2">Max Positions</label>
+                    <input
+                      type="number"
+                      value={config.max_positions}
+                      onChange={(e) => setConfig({ ...config, max_positions: parseInt(e.target.value) })}
+                      className="w-full px-4 py-2 bg-card-secondary border border-border rounded text-foreground focus:border-blue-500 focus:outline-none"
+                      min="1"
+                      max="15"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-muted-foreground mb-2">Min Signal Strength (%)</label>
+                    <input
+                      type="number"
+                      value={config.min_signal_strength * 100}
+                      onChange={(e) => setConfig({ ...config, min_signal_strength: parseFloat(e.target.value) / 100 })}
+                      className="w-full px-4 py-2 bg-card-secondary border border-border rounded text-foreground focus:border-blue-500 focus:outline-none"
+                      min="0"
+                      max="100"
+                      step="5"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Risk Management */}
+              <div>
+                <h3 className="text-foreground font-semibold mb-4 flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-amber-400" />
+                  Risk Management
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-muted-foreground mb-2">Stop Loss (%)</label>
+                    <input
+                      type="number"
+                      value={config.stop_loss_pct}
+                      onChange={(e) => setConfig({ ...config, stop_loss_pct: parseFloat(e.target.value) })}
+                      className="w-full px-4 py-2 bg-card-secondary border border-border rounded text-foreground focus:border-blue-500 focus:outline-none"
+                      min="1"
+                      max="50"
+                      step="0.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-muted-foreground mb-2">Take Profit (%)</label>
+                    <input
+                      type="number"
+                      value={config.take_profit_pct}
+                      onChange={(e) => setConfig({ ...config, take_profit_pct: parseFloat(e.target.value) })}
+                      className="w-full px-4 py-2 bg-card-secondary border border-border rounded text-foreground focus:border-blue-500 focus:outline-none"
+                      min="1"
+                      max="100"
+                      step="0.5"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Timing Settings */}
+              <div>
+                <h3 className="text-foreground font-semibold mb-4 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-purple-400" />
+                  Timing Settings
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-muted-foreground mb-2">Run Duration (hours)</label>
+                    <input
+                      type="number"
+                      value={config.run_duration_hours}
+                      onChange={(e) => setConfig({ ...config, run_duration_hours: parseFloat(e.target.value) })}
+                      className="w-full px-4 py-2 bg-card-secondary border border-border rounded text-foreground focus:border-blue-500 focus:outline-none"
+                      min="1"
+                      max="168"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-muted-foreground mb-2">Trade Frequency (minutes)</label>
+                    <input
+                      type="number"
+                      value={config.trade_frequency_minutes}
+                      onChange={(e) => setConfig({ ...config, trade_frequency_minutes: parseInt(e.target.value) })}
+                      className="w-full px-4 py-2 bg-card-secondary border border-border rounded text-foreground focus:border-blue-500 focus:outline-none"
+                      min="1"
+                      max="1440"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Settings */}
+              <div>
+                <h3 className="text-foreground font-semibold mb-4 flex items-center gap-2">
+                  <Bot className="w-5 h-5 text-blue-400" />
+                  AI Settings
+                </h3>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={config.use_ai_signals}
+                    onChange={(e) => setConfig({ ...config, use_ai_signals: e.target.checked })}
+                    className="w-5 h-5 rounded border-border bg-card-secondary"
+                  />
+                  <div>
+                    <p className="text-foreground font-medium">Use AI Signals</p>
+                    <p className="text-muted text-sm">Enable XGBoost model predictions for trading decisions</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-border flex items-center justify-between gap-4">
+              <button
+                onClick={() => setShowConfigModal(false)}
+                className="px-6 py-2 bg-card-secondary hover:bg-card text-foreground rounded transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveConfig}
+                disabled={isSavingConfig}
+                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSavingConfig ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    Save Configuration
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Market Closed Modal */}
+      {showMarketClosedModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-card border border-border rounded-lg max-w-md w-full"
+          >
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-amber-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">Market Closed</h2>
+                  <p className="text-sm text-muted-foreground">Trading Unavailable</p>
+                </div>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <p className="text-foreground">
+                  The US stock market is currently closed. Trading is only available during market hours:
+                </p>
+                <div className="bg-card-secondary rounded p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">Regular Trading Hours:</span>
+                    <span className="text-foreground font-medium">9:30 AM - 4:00 PM EST</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">Trading Days:</span>
+                    <span className="text-foreground font-medium">Monday - Friday</span>
+                  </div>
+                </div>
+                <p className="text-muted text-sm">
+                  The bot will automatically start trading when the market opens. You can still configure settings and view AI signals while the market is closed.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowMarketClosedModal(false)}
+                  className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded transition font-medium"
+                >
+                  Understood
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMarketClosedModal(false);
+                    setShowConfigModal(true);
+                  }}
+                  className="flex-1 px-4 py-2 bg-card-secondary hover:bg-card text-foreground rounded transition"
+                >
+                  Configure Settings
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 }

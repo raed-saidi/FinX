@@ -19,8 +19,8 @@ xgboost>=2.0.0
 
 # RL Model Support
 stable-baselines3>=2.3.0,<3.0.0  # Pin to prevent v3 breaking changes
-gymnasium>=0.29.0,<1.0.0
-torch>=2.5.0,<2.6.0  # Pin major.minor - 800MB+ dependency
+gymnasium>=0.29.0,<2.0.0
+torch>=2.5.0,<2.10.0  # Pin major.minor - 800MB+ dependency
 pydantic>=2.10.0,<3.0.0  # Critical: prevent FastAPI serialization breaks
 
 # Financial Data

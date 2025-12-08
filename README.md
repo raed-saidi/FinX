@@ -444,10 +444,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📚 Additional Documentation
 
 - [Design Document](./DESIGN_DOCUMENT.md) - System architecture deep dive
-- [Cleanup Report](./CLEANUP_REPORT.md) - Code quality audit
-- [Deployment Guide](./GOOGLE_CLOUD_DEPLOYMENT.md) - Cloud deployment instructions
-- [Webapp README](./webapp/README.md) - Frontend/Backend specific docs
-
 ---
 
 ## 🔧 Troubleshooting
@@ -477,8 +473,6 @@ Automated via GitHub Actions:
 1. Push to `main` branch
 2. CI/CD pipeline builds and deploys
 3. Secrets managed via Google Secret Manager
-
-See [GOOGLE_CLOUD_DEPLOYMENT.md](./GOOGLE_CLOUD_DEPLOYMENT.md) for details.
 
 ### Docker Compose (Local Production)
 

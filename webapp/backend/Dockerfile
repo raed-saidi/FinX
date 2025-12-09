@@ -1,6 +1,6 @@
 # Backend Dockerfile
 # Build stage
-FROM python:3.10.15-slim-bookworm AS builder
+FROM python:3.14.0-slim-bookworm AS builder
 
 WORKDIR /build
 
@@ -9,7 +9,7 @@ RUN pip install --user --no-cache-dir --upgrade pip && \
     pip install --user --no-cache-dir -r requirements.txt
 
 # Runtime stage
-FROM python:3.10.15-slim-bookworm
+FROM python:3.14.0-slim-bookworm
 
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser -u 1001 appuser

@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -79,7 +79,7 @@ jobs:
     needs: python-quality
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -117,7 +117,7 @@ jobs:
         working-directory: ./webapp/frontend
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -152,7 +152,7 @@ jobs:
         working-directory: ./webapp/frontend
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -182,7 +182,7 @@ jobs:
     needs: [python-tests, frontend-tests]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Run Trivy scan on Backend Dockerfile
         uses: aquasecurity/trivy-action@master
@@ -225,7 +225,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Google Auth
         uses: google-github-actions/auth@v2

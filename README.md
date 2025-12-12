@@ -420,9 +420,9 @@ Password: Demo123!@#
 
 ## 👥 Team
 
-Raed SAIDI : raed.saidi@insat.ucar.tn
-Yossr KHARRAT : yosr.kharrat@insat.ucar.tn
-Youssef REKIK : rekikyoussef009@gmail.com
+- Raed SAIDI : raed.saidi@insat.ucar.tn
+- Yossr KHARRAT : yosr.kharrat@insat.ucar.tn
+- Youssef REKIK : rekikyoussef009@gmail.com
 ---
 
 ## 📄 License

@@ -1,0 +1,89 @@
+﻿venv/
+.venv/
+__pycache__/
+*.pyc
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# ZenML
+.zen/
+.zenml/
+*.db
+
+# Environment variables and secrets
+.env
+.env.local
+.env.production
+.env*.local
+webapp/backend/.env
+webapp/frontend/.env.local
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Build outputs
+out/
+dist/
+build/
+.next/
+.turbo/
+**/.next/
+**/node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.DS_Store
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing artifacts
+.coverage
+coverage/
+htmlcov/
+.pytest_cache/
+*.cover
+.hypothesis/
+.tox/
+nosetests.xml
+coverage.xml
+*.coveragerc
+/webapp/frontend/coverage/
+/webapp/frontend/.jest-cache/
+
+# Large generated artifacts (use object storage/Git LFS if required)
+data/raw/*.csv
+data/raw/*.parquet
+data/raw/**/*.csv
+data/raw/**/*.parquet
+data/processed/
+data/exported_data/
+models/**/*.joblib
+models/**/*.zip
+
+# Debug and temporary scan artifacts
+COMPLETE_FILE_MAP.json
+file_map_raw.json
+file_scan.json
+full_file_list.json
+large_files.json
+README.old.md
+
+# Backup files
+*.bak
+*.old
+*.backup

@@ -1,0 +1,111 @@
+{
+  "training_date": "2025-12-03T13:27:11.214530",
+  "method": "walk_forward_validation",
+  "config": {
+    "min_train_years": 3,
+    "val_years": 0.5,
+    "test_years": 0.5,
+    "expanding_window": true
+  },
+  "xgboost_params": {
+    "objective": "reg:squarederror",
+    "learning_rate": 0.01,
+    "max_depth": 6,
+    "min_child_weight": 5,
+    "subsample": 0.8,
+    "colsample_bytree": 0.7,
+    "gamma": 0.2,
+    "reg_alpha": 0.5,
+    "reg_lambda": 2.0,
+    "random_state": 42,
+    "n_estimators": 1000
+  },
+  "assets": [
+    "INTC",
+    "AAPL",
+    "NVDA",
+    "IEF",
+    "HYG",
+    "BIL"
+  ],
+  "summary": [
+    {
+      "Asset": "INTC",
+      "N_Folds": 16,
+      "Horizon": 5,
+      "Test_RMSE": 0.03567398583432421,
+      "Test_R2": 0.2077445989518067,
+      "Test_DirAcc": 0.7341269841269842,
+      "Test_Corr": 0.6770117938428728,
+      "Test_Sharpe": 5.385450983920065,
+      "Test_Return": 0.2776799732520368,
+      "Test_WinRate": 0.6245039682539684,
+      "Test_Trades": 72.4375
+    },
+    {
+      "Asset": "AAPL",
+      "N_Folds": 16,
+      "Horizon": 5,
+      "Test_RMSE": 0.02906594072960442,
+      "Test_R2": 0.2721443790183494,
+      "Test_DirAcc": 0.7703373015873016,
+      "Test_Corr": 0.7000255327142986,
+      "Test_Sharpe": 5.778930476049473,
+      "Test_Return": 0.29683691662253686,
+      "Test_WinRate": 0.6185515873015873,
+      "Test_Trades": 80.6875
+    },
+    {
+      "Asset": "NVDA",
+      "N_Folds": 16,
+      "Horizon": 5,
+      "Test_RMSE": 0.042972195196310195,
+      "Test_R2": 0.3480196246044338,
+      "Test_DirAcc": 0.8020833333333334,
+      "Test_Corr": 0.7195605244514067,
+      "Test_Sharpe": 6.301106329670574,
+      "Test_Return": 0.764217994349679,
+      "Test_WinRate": 0.6488095238095238,
+      "Test_Trades": 89.875
+    },
+    {
+      "Asset": "IEF",
+      "N_Folds": 16,
+      "Horizon": 5,
+      "Test_RMSE": 0.008656086224377243,
+      "Test_R2": -0.0550234850230769,
+      "Test_DirAcc": 0.5218253968253969,
+      "Test_Corr": 0.0,
+      "Test_Sharpe": 0.1522815774696304,
+      "Test_Return": -0.00022299766900066992,
+      "Test_WinRate": 0.5024801587301587,
+      "Test_Trades": 0.0
+    },
+    {
+      "Asset": "HYG",
+      "N_Folds": 16,
+      "Horizon": 5,
+      "Test_RMSE": 0.01006994984017499,
+      "Test_R2": -0.039213150934297336,
+      "Test_DirAcc": 0.5858134920634921,
+      "Test_Corr": 0.0,
+      "Test_Sharpe": 1.0120476842744577,
+      "Test_Return": 0.0012533690699673902,
+      "Test_WinRate": 0.5372023809523809,
+      "Test_Trades": 0.0
+    },
+    {
+      "Asset": "BIL",
+      "N_Folds": 16,
+      "Horizon": 5,
+      "Test_RMSE": 0.0004191681162412772,
+      "Test_R2": -10.215279046877608,
+      "Test_DirAcc": 0.7638888888888888,
+      "Test_Corr": 0.0,
+      "Test_Sharpe": 7.272294348243672,
+      "Test_Return": 0.00010522327224683076,
+      "Test_WinRate": 0.5074404761904762,
+      "Test_Trades": 0.0
+    }
+  ]
+}

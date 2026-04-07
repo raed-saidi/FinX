@@ -1,0 +1,32 @@
+{
+  "config": {
+    "initial_capital": 1000000,
+    "transaction_cost": 0.005,
+    "slippage": 0.002,
+    "rebalance_days": 5,
+    "max_position": 0.2,
+    "test_start": "2021-01-01",
+    "test_end": "2024-11-25"
+  },
+  "signal_metrics": {
+    "total_return": 3.5315673630209634,
+    "annual_return": 0.4754414100233908,
+    "annual_volatility": 0.2359854176051113,
+    "sharpe_ratio": 1.9299557347459007,
+    "max_drawdown": 0.2580175786565157,
+    "total_costs": 1169775.2080894527,
+    "final_value": 4566576.78370274
+  },
+  "equal_metrics": {
+    "total_return": 0.7699904220351823,
+    "annual_return": 0.15832140426774166,
+    "annual_volatility": 0.21955027152291265,
+    "sharpe_ratio": 0.6300215586538512,
+    "max_drawdown": 0.37719310657319377,
+    "total_costs": 0.0,
+    "final_value": 1783664.794349144
+  },
+  "alpha": 2.761576940985781,
+  "timestamp": "2025-12-03T00:15:02.225155",
+  "note": "Realistic backtest with proper methodology"
+}

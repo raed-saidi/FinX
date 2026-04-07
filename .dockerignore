@@ -1,0 +1,43 @@
+# Exclude unnecessary files from Docker build context
+.git
+.vscode
+.idea
+
+# Local logs and environment files
+*.log
+.env
+.env.local
+.env.*
+!.env.example
+
+# Node modules
+**/node_modules
+**/.next
+
+# Python cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+
+# Virtual envs
+venv/
+.venv/
+ENV/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Notebook and editor cache
+**/.ipynb_checkpoints
+
+# Generated artifacts not needed in image builds
+results/
+data/exported_data/
+data/raw/
+models/rl_portfolio/checkpoints/
+models/rl_portfolio/tensorboard/
+
+# Keep `models/` and `data/processed/` because backend inference depends on them.
